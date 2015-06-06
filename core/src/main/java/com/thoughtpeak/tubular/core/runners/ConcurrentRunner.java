@@ -1,5 +1,6 @@
 package com.thoughtpeak.tubular.core.runners;
 
+import java.io.IOException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -61,7 +62,7 @@ public class ConcurrentRunner implements CoreRunner {
 						pipeline = pipelinePool.borrowObject();
 						bin = pipeline.executePipeline(eachItem.getDocumentText());
 						
-						worklist.collectionProcessCompleted(bin, eachItem);
+						worklist.workItemCompleted(bin, eachItem);
 						// Send to results collection
 
 
@@ -120,6 +121,15 @@ public class ConcurrentRunner implements CoreRunner {
 			if(jobServicePool.isTerminated())
 				break;
 		}
+		try {
+			worklist.close();
+			// call the completed worklist method
+			worklist.collectionProcessCompleted();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 
 	}
 

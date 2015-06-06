@@ -29,17 +29,21 @@ public interface WorkListDocumentCollector<T extends BaseWorkItem> extends Close
 	 */
 	public boolean isComplete();
 	/**
+	 * This method gets called when a single work item is processed through the pipeline
+	 * 
+	 * 
+	 * @param bin - The resulting annotations found in the unit of analysis
+	 * @param workItem - The work item that was used to get the annotations from
+	 */
+	public void workItemCompleted(CommonAnalysisStructure bin, T workItem);
+
+	/**
 	 * This method gets called when all items in the worklist is completed process is completed. Implementations
 	 * should then write the results to a channel, then remove reference to reclaim
 	 * memory.
-	 * 
-	 * When used in a persitent pipeline (IE, the items are always flowing into the worklist, then this could be used to 
-	 * return the pipeline to a object pool.
-	 * 
-	 * @param bin - The resulting annotations
-	 * @param workItem - The work item that was used to get the annotations from
 	 */
-	public void collectionProcessCompleted(CommonAnalysisStructure bin, T workItem);
+	public void collectionProcessCompleted();
+		
 	/**
 	 * Close any open resources
 	 * @throws IOException

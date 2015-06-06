@@ -87,7 +87,13 @@ public class RunnerTest extends BaseDocumentTest {
 		}
 
 		@Override
-		public void collectionProcessCompleted(CommonAnalysisStructure bin, BaseWorkItem workItem) {
+		public void workItemCompleted(CommonAnalysisStructure bin, BaseWorkItem workItem) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void collectionProcessCompleted() {
 			// TODO Auto-generated method stub
 			
 		}

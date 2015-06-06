@@ -27,7 +27,7 @@ public class WorkListCSVCollector <T extends BaseWorkItem> implements WorkListDo
 	
 	private CSVWriter writer;
 	
-	private String path = "/Users/chrisbeesley/Documents/DataSets/QOLResults/qolResultsV3.csv";
+	private String path = "some path";
 	
 	public WorkListCSVCollector(String outputPath, String[] header, List<T> worklist) throws IOException{
 		
@@ -47,13 +47,19 @@ public class WorkListCSVCollector <T extends BaseWorkItem> implements WorkListDo
 	}
 
 	@Override
-	public void collectionProcessCompleted(CommonAnalysisStructure bin, T workItem) {
+	public void workItemCompleted(CommonAnalysisStructure bin, T workItem) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void close() throws IOException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void collectionProcessCompleted() {
 		// TODO Auto-generated method stub
 		
 	}

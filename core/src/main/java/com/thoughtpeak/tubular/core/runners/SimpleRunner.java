@@ -29,11 +29,12 @@ public class SimpleRunner implements CoreRunner{
 			T eachItem = worklist.getNext();
 			CommonAnalysisStructure bin = used.executePipeline(eachItem.getDocumentText());
 			
-			worklist.collectionProcessCompleted(bin, eachItem);
+			worklist.workItemCompleted(bin, eachItem);
 			
 		}
 		try {
 			worklist.close();
+			worklist.collectionProcessCompleted();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
