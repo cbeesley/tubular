@@ -1,5 +1,6 @@
 package com.thoughtpeak.tubular.core.processengine;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -9,6 +10,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
 
 
 
@@ -25,8 +27,10 @@ import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
  * @author chrisbeesley
  *
  */
-public class Pipeline {
+public class Pipeline implements Serializable {
 	
+	private static final long serialVersionUID = -3296253925396860034L;
+
 	protected Logger log = Logger.getLogger(Pipeline.class);
 	
 	// if adding new properties, be sure to update createNewCopy method

@@ -29,13 +29,18 @@ public interface WorkListDocumentCollector<T extends BaseWorkItem> extends Close
 	 */
 	public boolean isComplete();
 	/**
-	 * This method gets called when a single work item is processed through the pipeline
+	 * This method gets called when a single work item is processed through the pipeline.
+	 * 
+	 * If you need to add a result that needs to be processed by a custom runner such as a new
+	 * annotation that needs to be computed within this method, add it to the CAS then retrieve
+	 * the annotations in the runner. The default runners do not do anything with the CAS so this 
+	 * functionality needs to be implemented using a custom runner of your design.
 	 * 
 	 * 
-	 * @param bin - The resulting annotations found in the unit of analysis
+	 * @param cas - The resulting common analysis structure with the annotations found in the unit of analysis
 	 * @param workItem - The work item that was used to get the annotations from
 	 */
-	public void workItemCompleted(CommonAnalysisStructure bin, T workItem);
+	public void workItemCompleted(CommonAnalysisStructure cas, T workItem);
 
 	/**
 	 * This method gets called when all items in the worklist is completed process is completed. Implementations
