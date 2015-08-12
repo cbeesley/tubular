@@ -104,18 +104,18 @@ public class BaseCASImpl implements CommonAnalysisStructure {
 			AnnotationIndex<T> index = (AnnotationIndex<T>) annotationIndex.get(typeSig);
 			index.addAnnotationToIndex(value);
 		}else { // We have a new type that has not been indexed so create new index
-			
-			// Create index for base annotation
-			if(value instanceof BaseAnnotationType){
+			if (value instanceof TextTokenType){
+				AnnotationIndex<TextTokenType> index = new TextTokenAnnotationIndex<TextTokenType>();
+				index.addAnnotationToIndex((TextTokenType)value);
+				this.putIndex(typeSig, index);
+			// Otherwise use the generic index for user defined index
+			// also look for index java annotations in the class variables to setup the indexing
+			}// Create index for base annotation
+			else if(value instanceof BaseAnnotationType){
 				AnnotationIndex<BaseAnnotationType> index = new AnnotationTokenIndex<BaseAnnotationType>();
 				index.addAnnotationToIndex((BaseAnnotationType)value);
 				this.putIndex(typeSig, index);
 				
-			// Create index for TextTokenType
-			}else if (value instanceof TextTokenType){
-				AnnotationIndex<TextTokenType> index = new TextTokenAnnotationIndex<TextTokenType>();
-				index.addAnnotationToIndex((TextTokenType)value);
-				this.putIndex(typeSig, index);
 			// Otherwise use the generic index for user defined index
 			// also look for index java annotations in the class variables to setup the indexing
 			}else {
@@ -149,7 +149,9 @@ public class BaseCASImpl implements CommonAnalysisStructure {
 	@Override
 	public <T, V extends BaseAnnotationType> List<T> getAnnotationsWithinSpan( V valueTarget, Class<T> type ){
 		AnnotationIndex<T> index = this.getIndex(type);
-		if(index == null){
+		// there might be an empty index. If thats the case, then we need to 
+		// check if its empty. The current contract returns a blank generic index
+		if( index.getFullSet().isEmpty()){
 			log.debug("No index for the following type:" + type.getName());
 			return new ArrayList<T>();
 		}
@@ -165,7 +167,9 @@ public class BaseCASImpl implements CommonAnalysisStructure {
 	}
 	/**
 	 * Retrieves the index of the given type. If no index is found, then
-	 * a blank index of that type is returned.
+	 * a blank index using the generic type is returned. The caller then needs
+	 * to test and handle an empty index to avoid calling unsupported functions
+	 * 
 	 * @param type - The target type to look for
 	 * @return - the index of the types
 	 */

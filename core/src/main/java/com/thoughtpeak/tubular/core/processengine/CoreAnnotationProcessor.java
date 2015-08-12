@@ -1,5 +1,7 @@
 package com.thoughtpeak.tubular.core.processengine;
 
+import java.io.Serializable;
+
 import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
 /**
  * The base interface for all annotation processors. All implementation classes
@@ -8,7 +10,7 @@ import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
  * @author chrisbeesley
  *
  */
-public interface CoreAnnotationProcessor {
+public interface CoreAnnotationProcessor extends Serializable {
 	
 	public void process(CommonAnalysisStructure cas);
 

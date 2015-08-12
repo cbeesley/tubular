@@ -14,6 +14,24 @@ public abstract class BaseWorkItem implements Serializable{
 	
 	
 	private static final long serialVersionUID = -7414253574946304250L;
+	/**
+	 * Optionally set a unique identifier to retrieve the document from
+	 * an external source
+	 */
+	private String baseIdentifier;
+	
+	
+
+	public BaseWorkItem(String baseIdentifier) {
+		super();
+		this.baseIdentifier = baseIdentifier;
+	}
+	
+	public BaseWorkItem() {
+		
+	}
+
+
 
 	/**
 	 * The text that is to be processed in the annotation
@@ -22,6 +40,12 @@ public abstract class BaseWorkItem implements Serializable{
 	 * @return The text that is to be annotated
 	 */
 	public abstract String getDocumentText();
+
+	public String getBaseIdentifier() {
+		return baseIdentifier;
+	}
+	
+	
 	
 
 }

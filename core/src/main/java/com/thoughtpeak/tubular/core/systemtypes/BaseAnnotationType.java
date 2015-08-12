@@ -1,4 +1,7 @@
 package com.thoughtpeak.tubular.core.systemtypes;
+
+import java.io.Serializable;
+
 /**
  * This is the base annotation type that most
  * Annotation types should extend. When it is
@@ -6,8 +9,9 @@ package com.thoughtpeak.tubular.core.systemtypes;
  * the type
  * 
  */
-public class BaseAnnotationType {
+public class BaseAnnotationType implements Serializable {
 	
+	private static final long serialVersionUID = 8180219529631765607L;
 	/**
 	 * This is the relative position index
 	 * which denotes what order this token was put for this type. Subclasses

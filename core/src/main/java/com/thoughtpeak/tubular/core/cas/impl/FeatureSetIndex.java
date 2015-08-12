@@ -152,13 +152,13 @@ public class FeatureSetIndex<T> implements AnnotationIndex<T> {
 	 */
 	@Override
 	public List<T> findAnnotationsInSpanRange(int startPosition, int endPosition) {
-		throw new IllegalArgumentException("The findAnnotations function in the FeatureIndex is not supported, use a class that extends BaseTextToken");
+		throw new IllegalArgumentException("The findAnnotations function in the FeatureIndex is not supported, use a class that extends TextTokenType");
 		//return null;
 	}
 	@Override
 	public List<T> findAnnotationsInRelativePositionRange(int startPosition,
 			int endPosition) {
-		throw new IllegalArgumentException("The findAnnotations function in the FeatureIndex is not supported, use a class that extends BaseTextToken");
+		throw new IllegalArgumentException("The findAnnotations function in the FeatureIndex is not supported, use a class that extends TextTokenType");
 		
 	}
 

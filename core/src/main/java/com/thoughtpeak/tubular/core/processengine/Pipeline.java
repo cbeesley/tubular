@@ -31,7 +31,7 @@ public class Pipeline implements Serializable {
 	
 	private static final long serialVersionUID = -3296253925396860034L;
 
-	protected Logger log = Logger.getLogger(Pipeline.class);
+	private static final Logger log = Logger.getLogger(Pipeline.class);
 	
 	// if adding new properties, be sure to update createNewCopy method
 	
@@ -89,7 +89,7 @@ public class Pipeline implements Serializable {
 					// if its a analysis component, check for deps
 					if(annoName.equals(AnalysisComponent.class.getName())){
 						// load the dependancy list
-						System.out.println(annoName);
+						// System.out.println(annoName);
 						// check all dependancies are loaded into the pipeline, if they are not present, then
 						// load them automatically
 						

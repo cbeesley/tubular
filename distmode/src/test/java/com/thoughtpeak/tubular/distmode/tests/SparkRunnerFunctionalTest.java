@@ -13,8 +13,9 @@ import com.thoughtpeak.tubular.core.processengine.Pipeline;
 import com.thoughtpeak.tubular.core.runners.ConcurrentRunner;
 import com.thoughtpeak.tubular.core.worklist.BaseWorkItem;
 import com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector;
-import com.thoughtpeak.tubular.distmode.SparkRunner;
+import com.thoughtpeak.tubular.distmode.BaseSparkRunner;
 import com.thoughtpeak.tubular.distmode.confs.SparkRunnerConfiguration;
+import com.thoughtpeak.tubular.distmode.runners.AnnotationCounterRunner;
 import com.thoughtpeak.tubular.tests.BaseDocumentTest;
 import com.thoughtpeak.tubular.tests.pipelinetests.TestConceptDetector;
 import com.thoughtpeak.tubular.tests.pipelinetests.TestSentenceDetector;
@@ -47,7 +48,7 @@ public class SparkRunnerFunctionalTest extends BaseDocumentTest{
 			
 			TestWorklist testWorklist = new TestWorklist(this.loadMultiDocument("multiDoc.txt"));
 			
-			SparkRunner runner = new SparkRunner(config);
+			AnnotationCounterRunner runner = new AnnotationCounterRunner(config);
 			runner.execute(pipeline, testWorklist);
 			
 			CSVCreatorChannel csvChannel = new CSVCreatorChannel(null);

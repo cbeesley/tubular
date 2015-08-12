@@ -16,7 +16,8 @@ import java.util.Map;
 public class TextTokenType extends BaseAnnotationType{
 	
 	
-	
+	private static final long serialVersionUID = 894770298126866670L;
+
 	private String coveredText;
 	
 	private int sentencePosition;

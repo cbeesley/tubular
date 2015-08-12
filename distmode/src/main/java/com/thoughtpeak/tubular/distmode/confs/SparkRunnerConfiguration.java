@@ -27,15 +27,11 @@ public class SparkRunnerConfiguration implements ExecutionConfiguration,Serializ
 	 * The name of a supported document source to be used such as hbase, cassandra, sql etc
 	 */
 	private String sourceCollection;
-	/**
-	 * The identifier that is the unique id for the whole collection to use.
-	 * This could be in the form of a document id in which this config parm then
-	 * would be the name of the field to use.
-	 */
-	private String sourceCollectionIdentifier;
+	
 	/**
 	 * When true, tells the runner to use the work item's text field as a source for document
-	 * analysis through the pipeline
+	 * analysis through the pipeline. When false, the runner will attempt to retrieve the
+	 * text source via the configure data source using BaseWorkItem's baseIdentifiers field.
 	 */
 	private boolean useBaseWorkItemText = false;
 	
@@ -92,14 +88,6 @@ public class SparkRunnerConfiguration implements ExecutionConfiguration,Serializ
 
 	public void setSourceCollection(String sourceCollection) {
 		this.sourceCollection = sourceCollection;
-	}
-
-	public String getSourceCollectionIdentifier() {
-		return sourceCollectionIdentifier;
-	}
-
-	public void setSourceCollectionIdentifier(String sourceCollectionIdentifier) {
-		this.sourceCollectionIdentifier = sourceCollectionIdentifier;
 	}
 
 	public boolean isUseBaseWorkItemText() {
