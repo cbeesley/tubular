@@ -11,6 +11,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFunction;
+import org.apache.spark.broadcast.Broadcast;
 
 import scala.Tuple2;
 
@@ -35,12 +36,13 @@ public class AnnotationCounterRunner extends BaseSparkRunner {
 	@Override
 	protected <T extends BaseWorkItem> void beginJob(final Pipeline pipeline,
 			final SparkWorkListCollector<T> worklist) {
-		SparkConf sparkConf = new SparkConf().setMaster("local").setAppName(runnerConfig.getAppName());
+		SparkConf sparkConf = new SparkConf().setMaster(runnerConfig.getRuntimeMode()).setAppName(runnerConfig.getAppName());
+		//sparkConf.set(key, value)
 		JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
 		
 		
 		//conf.setAppName(pipeline.getPipelineName());
-		
+		//final Broadcast<Pipeline> broadcastpipeline = sparkContext.broadcast(pipeline.createNewCopy());
 		JavaRDD<T> input = null;
 		
 		// if the worklist has items, then this runner will use the source text
@@ -58,9 +60,8 @@ public class AnnotationCounterRunner extends BaseSparkRunner {
 				input = sparkContext.parallelize(worklist.getCollection());
 			}
 		}
-
-		JavaRDD<MapperResultType> annotations = createPipelineBasedRDD(pipeline,input,worklist);
 		
+		JavaRDD<MapperResultType> annotations = createPartitionPipelineBasedRDD(pipeline,input,worklist);
 		// Transform that maps the annotations into key/value pairs
 		JavaPairRDD<String, Integer> counts = annotations.mapToPair(
 				/**

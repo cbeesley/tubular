@@ -22,3 +22,13 @@ The strategy, format, and location on how to consume the input data is up to you
 * Identifier based - You could create the worklist using some kind of unique identifier. When the getNext() method is called, the identifier is used to retrieve the text for analysis in the pipeline.
 
 * Distributed - The source could be located in a cluster like HDFS or Cassandra. Tubular contains utilities to load these sources when its run in distributed mode
+
+## Running Tubular in distributed mode
+
+Tubular can run your pipeline on a cluster using Spark. While the pipelines that you create can generally remain the same, there are however some things you need to do within each annotation processor.
+
+* Ensure that instance variables contain classes that are Serializable - Spark distributes these on a cluster by using Serialization
+
+* If you are using third party classes that are not serialized, mark instance variables as transient or static
+
+* You may need to synchronize access to instance variables in your annotation processors if they are static. By default, Tubular spark runner creates partitions over which one instance of the Pipeline is created which is similar to how ConcurrentRunner runs jobs using multiple threads.

@@ -2,11 +2,13 @@ package com.thoughtpeak.tubular.distmode;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
+import org.apache.spark.api.java.function.PairFlatMapFunction;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -19,15 +21,15 @@ import com.thoughtpeak.tubular.distmode.confs.SparkRunnerConfiguration;
 import com.thoughtpeak.tubular.distmode.types.MapperResultType;
 /**
  * Base spark driver class for extending and running pipelines over a cluster or
- * standalone mode. It main purpose is to setup configuration, setup external datasource for
- * reading and writing. Then it can be subclassed to implment the execution logic for each runner.
+ * standalone mode. It main purpose is to setup configuration and setup external datasource for
+ * reading and writing. Then it can be subclassed to implement the execution logic for each runner.
  * 
- * There are stock runners available in the @see com.thoughtpeak.tubular.distmode.runners
+ * There are stock driver runners available in the @see com.thoughtpeak.tubular.distmode.runners
  * 
- * When running your pipeline using this runner, spark uses Serialization for job management.
+ * When running your pipeline using this class, spark uses Serialization for job management.
  * Therefore all fields in your annotation classes must support Serialization
  * by implementing the  Serialization interface. If it is a CoreAnnotationProcessor, this class is already
- * Serializable. If the instance is not a class you can modify, then it must
+ * Serializable. If the instance is not a class you can modify (like an instance variable), then it must
  * be static or if you dont need the field during execution, mark it as transient.
  * 
  * @author chrisbeesley
@@ -50,6 +52,8 @@ public abstract class BaseSparkRunner implements CoreRunner, Serializable{
 		// check destination
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(config.getDestinationPath()),
 				"A destination path needs to be specfied in the configuration");
+		Preconditions.checkArgument(!Strings.isNullOrEmpty(config.getRuntimeMode()),
+				"No setRuntimeMode - A runtime mode needs to be specified such as local, \"local[4]\" to run locally with 4 cores, or \"spark://master:7077\" to run on a Spark standalone cluster.");
 	}
 	/**
 	 * Starts the execution of the spark job in the descendant class.
@@ -76,17 +80,21 @@ public abstract class BaseSparkRunner implements CoreRunner, Serializable{
 	}
 	
 
-	
 	/**
-	 * Transform that builds an RDD that will use the Pipeline to generate annoations. The annotations must then
-	 * be filtered to MapperResultTypes so that they can be used in subsequent actions and transforms
+	 * Transform that builds an RDD that will use the Pipeline to generate annotations. The annotations must then
+	 * be filtered to MapperResultTypes so that they can be used in subsequent actions and transforms.
+	 * 
+	 * If the runner config UseBaseWorkItemText is true, then this transform requires
+	 * the text getter in BaseWorkItem to not be null and contain the subject of analysis for the pipeline.
+	 * 
+	 * If its false, then this method will use the configured DataSource to attempt to retrieve the source text which could be
+	 * a text file, Hbase/Cassandra, or database.
 	 * 
 	 * @param pipeline - A single pipeline instance
-	 * @param worklist - The items to process. If the runner config UseBaseWorkItemText is true, then this transform requires
-	 * the text getter in BaseWorkItem to not be null
+	 * @param worklist - The items to process. 
 	 * @return A RDD that contains MapperResultTypes that the worklist implementations converts to from CAS annotations
 	 */
-	protected <T extends BaseWorkItem> JavaRDD<MapperResultType> createPipelineBasedRDD( final Pipeline pipeline,
+	protected <T extends BaseWorkItem> JavaRDD<MapperResultType> createPartitionPipelineBasedRDD( final Pipeline pipeline,
 			JavaRDD<T> input,final SparkWorkListCollector<T> worklist) {
 		
 		
@@ -94,17 +102,15 @@ public abstract class BaseSparkRunner implements CoreRunner, Serializable{
 		// Load our input data either by the worklist or external source like cassandra or database.
 		
 		// transform that runs the pipeline over the input RDD
-		JavaRDD<MapperResultType> annotations = input.flatMap(new FlatMapFunction<T, MapperResultType>() {
+		JavaRDD<MapperResultType> annotations = input.mapPartitions(new FlatMapFunction<Iterator<T>, MapperResultType>() {
 			
 			private static final long serialVersionUID = -852396122968738184L;
-			
-			private final Pipeline active_pipeline = pipeline.createNewCopy();
 
-			public Iterable<MapperResultType> call(T eachItem) {
+			public Iterable<MapperResultType> call(Iterator<T> partitionItems) {
 				
 				List<MapperResultType> results = new ArrayList<MapperResultType>();
+				Pipeline active_pipeline = pipeline.createNewCopy();
 				
-				CommonAnalysisStructure cas = null;
 				try {
 					// if the config says to use the work item's text, then use it as the source
 					if(runnerConfig.isUseBaseWorkItemText()){
@@ -112,9 +118,13 @@ public abstract class BaseSparkRunner implements CoreRunner, Serializable{
 					}else { // we need to use the data driver to get the source using the id
 						
 					}
-					cas = active_pipeline.executePipeline(eachItem.getDocumentText());
-					results = worklist.initialPipelineResultsFilter(cas, eachItem);
-					worklist.workItemCompleted(cas, eachItem);
+					while(partitionItems.hasNext()){
+						T eachItem = partitionItems.next();
+						CommonAnalysisStructure cas = active_pipeline.executePipeline(eachItem.getDocumentText());
+						results = worklist.initialPipelineResultsFilter(cas, eachItem);
+						worklist.workItemCompleted(cas, eachItem);
+					}
+					
 					
 				} catch (Exception e) {
 					e.printStackTrace();

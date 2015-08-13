@@ -2,6 +2,7 @@ package com.thoughtpeak.tubular.distmode.confs;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.thoughtpeak.tubular.core.ExecutionConfiguration;
@@ -34,6 +35,20 @@ public class SparkRunnerConfiguration implements ExecutionConfiguration,Serializ
 	 * text source via the configure data source using BaseWorkItem's baseIdentifiers field.
 	 */
 	private boolean useBaseWorkItemText = false;
+	/**
+	 * Set this to load property files that you need to load on the cluster
+	 * They need to be located in the classpath of the jar that is deployed 
+	 */
+	private List<String> clusterProps;
+	/**
+	 * Send JAR files to distribute to the cluster using the names
+	 */
+	private List<String> jarFileNames;
+	/**
+	 * Specifiy a list of jvm parameters you want to pass to the cluster
+	 * spark.executor.extraJavaOptions
+	 */
+	private List<String> clusterJVMParams;
 	
 	/**
 	 * Enum for setting up labels for each config param

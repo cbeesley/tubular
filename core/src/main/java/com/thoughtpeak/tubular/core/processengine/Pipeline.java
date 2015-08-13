@@ -148,6 +148,7 @@ public class Pipeline implements Serializable {
 	private Pipeline(Assemble assembly){
 		pipelineName = assembly.pipelineName;
 		pipeline = assembly.pipeline;
+		
 	}
 	
 	/**
@@ -182,6 +183,7 @@ public class Pipeline implements Serializable {
 	 * @return new pipeline based on the settings
 	 */
 	public Pipeline createNewCopy(){
+		
 		List<CoreAnnotationProcessor> newInstanceList = new ArrayList<CoreAnnotationProcessor>();
 		
 		// create new instances of each processor
