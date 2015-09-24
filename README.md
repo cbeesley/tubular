@@ -32,3 +32,26 @@ Tubular can run your pipeline on a cluster using Spark. While the pipelines that
 * If you are using third party classes that are not serialized, mark instance variables as transient or static
 
 * You may need to synchronize access to instance variables in your annotation processors if they are static. By default, Tubular spark runner creates partitions over which one instance of the Pipeline is created which is similar to how ConcurrentRunner runs jobs using multiple threads.
+
+To build a deployable spark job, your project needs to supply the spark cluster with all the required dependancies. One method if you are using Maven is to use the shade plugin to combine them into a single jar. Use the following snippet in your pom
+
+            <!-- Maven shade plug-in  JARs -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.3</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+Then run:
+
+	$ mvn package
+	
+The generated jar can then be deployed using the spark-submit script
