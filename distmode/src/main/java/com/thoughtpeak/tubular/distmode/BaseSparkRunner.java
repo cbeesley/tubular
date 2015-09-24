@@ -75,7 +75,7 @@ public abstract class BaseSparkRunner implements CoreRunner, Serializable{
 		}
 
 		else
-			throw new IllegalArgumentException("The work list instance is not a SparkWorkListCollector, please implement this interface and retry");
+			throw new IllegalArgumentException("The work list instance is not a SparkWorkListCollector, please implement that interface and retry");
 
 	}
 	
