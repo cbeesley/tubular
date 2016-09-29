@@ -10,6 +10,7 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Optional;
 import com.thoughtpeak.tubular.core.annotations.CasIndexField;
 import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
 import com.thoughtpeak.tubular.core.container.AnnotationIndex;
@@ -33,7 +34,7 @@ public class BaseCASImpl implements CommonAnalysisStructure {
 	private Logger log = Logger.getLogger(BaseCASImpl.class);
 	
 	/**
-	 * Contains the analyzed document text. 
+	 * Contains the original document text when this cas was created. 
 	 */
 	private final String sofaText;
 	
@@ -65,12 +66,18 @@ public class BaseCASImpl implements CommonAnalysisStructure {
 	}
 
 	@Override
-	public CommonAnalysisStructure createNewDocumentView(String casViewName) {
+	public CommonAnalysisStructure createNewDocumentView(String casViewName, Optional<String> sourceText) {
 		if(viewIndex.containsKey(casViewName)){
 			log.info("Already a view with this name, returning that view");
 			return viewIndex.get(casViewName);
 		}
-		CommonAnalysisStructure cas = createInstance(sofaText);
+		CommonAnalysisStructure cas;
+		
+		if(sourceText.isPresent())
+			cas = createInstance(sourceText.get());
+		else
+			cas = createInstance(sofaText);
+		
 		viewIndex.put(casViewName, cas);
 		return cas;
 	}

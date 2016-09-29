@@ -11,6 +11,7 @@ import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 import com.thoughtpeak.tubular.core.cas.impl.BaseCASImpl;
 import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
@@ -85,7 +86,7 @@ public class TestIndexContainer extends BaseDocumentTest {
 		tag1.setCoveredText("First word");
 		sampleCas.addToIndex(tag1);
 		
-		sampleCas.createNewDocumentView("TEST_VIEW");
+		sampleCas.createNewDocumentView("TEST_VIEW", Optional.<String> absent());
 		// Get the view first
 		CommonAnalysisStructure newView = sampleCas.getView("TEST_VIEW");
 		TokenizedWord tag2 = new TokenizedWord();

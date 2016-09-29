@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ClassToInstanceMap;
 import com.thoughtpeak.tubular.core.features.FeatureType;
 import com.thoughtpeak.tubular.core.systemtypes.BaseAnnotationType;
@@ -27,12 +28,17 @@ public interface CommonAnalysisStructure {
 	/**
 	 * Creates a document view of the this cas. Takes whatever is set as the document
 	 * text and sets the new view with it. This is so that alternative instances of the 
-	 * the document can be created by maintaining consistency of the word token positions
+	 * the document can be created by maintaining consistency of the word token positions.
 	 * 
-	 * @param documentViewName
-	 * @return
+	 * If you have large documents and a lot of them, you should do any pre-processing before
+	 * it gets put in the cas since having one than one copy of the source/view will consume more memory 
+	 * if you have a lot of views.
+	 * 
+	 * @param documentViewName - The name of the view that your annotators use to access
+	 * @param sourceText - An optional param that will insert the string into the view, otherwise if absent (Optional.<String> absent()) uses the text from the initial view
+	 * @return A new cas that using the new view
 	 */
-	public CommonAnalysisStructure createNewDocumentView(String casViewName);
+	public CommonAnalysisStructure createNewDocumentView(String casViewName, Optional<String> sourceText);
 	/**
 	 * Get the original source text used for this CAS
 	 * 

@@ -64,6 +64,12 @@ public class BaseDocumentTest {
 				    				public String getDocumentText(){
 				    					return buffer.toString();
 				    				}
+
+									@Override
+									public void overrideText(String text) {
+										// TODO Auto-generated method stub
+										
+									}
 				    				
 				    			});
 				    		}

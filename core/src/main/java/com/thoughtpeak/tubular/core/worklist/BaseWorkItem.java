@@ -34,12 +34,24 @@ public abstract class BaseWorkItem implements Serializable{
 
 
 	/**
-	 * The text that is to be processed in the annotation
-	 * bin.
+	 * The text that is to be processed in the cas.
 	 * 
 	 * @return The text that is to be annotated
 	 */
 	public abstract String getDocumentText();
+	
+	/**
+	 * This method allows for overriding the document text. The reasoning
+	 * is to transform the text into another format before its gets sent to the pipeline
+	 * The normal way is to create a cas view but if you have a large amount of documents to 
+	 * process and you have a more effcient way to perform an operation on it than within the pipeline, then
+	 * use this method. Its up the extending classes to decide to override it or not
+	 * 
+	 * @param text
+	 */	
+	public void overrideText(String text){
+		throw new IllegalArgumentException("This type does not allow to override the text");
+	}
 
 	public String getBaseIdentifier() {
 		return baseIdentifier;
