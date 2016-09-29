@@ -1,4 +1,4 @@
-package com.thoughtpeak.tubular.tests;
+package com.thoughtpeak.tubular.core.commontest;
 
 import java.io.File;
 import java.io.IOException;

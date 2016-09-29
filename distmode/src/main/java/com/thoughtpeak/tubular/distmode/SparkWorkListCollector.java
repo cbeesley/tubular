@@ -16,6 +16,9 @@ import com.thoughtpeak.tubular.distmode.types.MapperResultType;
  * 
  * If your collection in the worklist is larger than memory can hold, then consider writing out the worklist to a text file
  * format on a cluster such as hdfs, then use the text loader as a data source which uses block size partitions.
+ * 
+ * You must also ensure that the classes you use that are defined in instance variables implement serializable or marked as
+ * transient
  */
 public interface SparkWorkListCollector<T extends BaseWorkItem> extends WorkListDocumentCollector<T>{
 	/**
@@ -33,7 +36,9 @@ public interface SparkWorkListCollector<T extends BaseWorkItem> extends WorkList
 	public List<MapperResultType> initialPipelineResultsFilter(CommonAnalysisStructure cas, T workItem);
 	/**
 	 * Spark can parallelize the entire collection directly instead of calling the getNext()
-	 * in the worklist. 
+	 * in the worklist. This is useful in cases where you want Spark to handle the retrieval of the source
+	 * text for example, from a http based service during the paralellization process as opposed to materializing 
+	 * the entire collection at once if you have a large amount of data to process.
 	 * 
 	 * @return A list of T types to create the initial RDD. If this is null or empty, then the runner will attempt to call 
 	 * the getNext() in the worklist.

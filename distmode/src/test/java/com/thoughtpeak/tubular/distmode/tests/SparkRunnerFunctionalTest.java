@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.thoughtpeak.tubular.core.collection.CSVCreatorChannel;
@@ -21,6 +22,13 @@ import com.thoughtpeak.tubular.tests.pipelinetests.TestConceptDetector;
 import com.thoughtpeak.tubular.tests.pipelinetests.TestSentenceDetector;
 import com.thoughtpeak.tubular.tests.pipelinetests.TestWordTokenAnnotator;
 
+/**
+ * Still working on getting this setup and working
+ * 
+ * @author chrisbeesley
+ *
+ */
+@Ignore
 public class SparkRunnerFunctionalTest extends BaseDocumentTest{
 	
 	private Pipeline pipeline;

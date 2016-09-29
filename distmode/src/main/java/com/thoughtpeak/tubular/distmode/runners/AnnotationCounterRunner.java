@@ -49,6 +49,8 @@ public class AnnotationCounterRunner extends BaseSparkRunner {
 		// in each base work item or use the identifier to get it from an external source
 		// parallelize loads the entire collection in memory so be careful with large datasets
 		// in the worklist class
+		// In the case that you want to have spark pull the id's during the parallelize operation, you must designate
+		// a function that can handle that
 		if(runnerConfig.isUseBaseWorkItemText()){
 			if(worklist.getCollection() == null || worklist.getCollection().isEmpty()){
 				List<T> temp = new ArrayList<T>();
