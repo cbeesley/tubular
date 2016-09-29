@@ -187,14 +187,14 @@ public class BaseCASImpl implements CommonAnalysisStructure {
 				
 	}
 	/**
-	 * factory method for creating an instance of this bin
+	 * factory method for creating an instance of this cas
 	 * @param docText - The document text to set for the initial view
 	 * @return
 	 */
 	public static CommonAnalysisStructure createInstance(String docText){
-		BaseCASImpl bin = new BaseCASImpl(docText);
-		bin.init();
-		return bin;
+		BaseCASImpl cas = new BaseCASImpl(docText);
+		cas.init();
+		return cas;
 		
 	}
 	
