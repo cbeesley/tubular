@@ -15,6 +15,7 @@ import java.util.Set;
 
 
 
+
 import org.apache.log4j.Logger;
 
 import com.thoughtpeak.tubular.core.annotations.AnalysisComponent;
@@ -37,7 +38,11 @@ public class Pipeline implements Serializable {
 	
 	private final String pipelineName;
 	
-	private final Set<CoreAnnotationProcessor> pipeline;
+	private final Set<CoreAnnotationProcessor> annotatorPipeline;
+	
+	private final PipelineContext pipelineContext;
+	
+	
 	
 	private final static String initalize_anno_classpath = "com.thoughtpeak.tubular.core.annotations.Initialize";
 	
@@ -47,9 +52,10 @@ public class Pipeline implements Serializable {
 		private final String pipelineName;
 		
 		
-		
 		//Optional
-		private final Set<CoreAnnotationProcessor> pipeline = new LinkedHashSet<CoreAnnotationProcessor>();
+		private final Set<CoreAnnotationProcessor> annotatorPipeline = new LinkedHashSet<CoreAnnotationProcessor>();
+		
+		private PipelineContext pipelineContext = new PipelineContext();
 		
 		public Assemble(String pipelineName){
 			
@@ -58,7 +64,7 @@ public class Pipeline implements Serializable {
 		}
 		
 		public Assemble addAnalyzer(CoreAnnotationProcessor ae){
-			pipeline.add(ae);
+			annotatorPipeline.add(ae);
 			return this;
 		}
 		/**
@@ -68,17 +74,24 @@ public class Pipeline implements Serializable {
 		 * @return
 		 */
 		public Assemble addAllAnalyzers(Collection<? extends CoreAnnotationProcessor> list){
-			pipeline.addAll(list);
+			annotatorPipeline.addAll(list);
+			
+			return this;
+		}
+		
+		public Assemble setPipelineContext(PipelineContext pipelineContext){
+			
+			this.pipelineContext = pipelineContext;
 			
 			return this;
 		}
 		
 		public Pipeline create() {
-			if(pipeline.isEmpty()){
+			if(annotatorPipeline.isEmpty()){
 				throw new IllegalArgumentException("In order to execute a pipeline, you need to set at least one processor engine");
 			}
 			// now look thru each annotator and see which java annotations need to be processed
-			for (CoreAnnotationProcessor eachEngine : pipeline) {
+			for (CoreAnnotationProcessor eachEngine : annotatorPipeline) {
 
 				Class<?> inst = eachEngine.getClass();
 				if(inst.getAnnotations().length < 1){
@@ -88,9 +101,10 @@ public class Pipeline implements Serializable {
 					String annoName = classAnnotation.annotationType().getName();
 					// if its a analysis component, check for deps
 					if(annoName.equals(AnalysisComponent.class.getName())){
-						// load the dependancy list
+						// Future feature -
+						// load the dependency list
 						// System.out.println(annoName);
-						// check all dependancies are loaded into the pipeline, if they are not present, then
+						// check all dependencies are loaded into the pipeline, if they are not present, then
 						// load them automatically
 						
 						// sort into pipeline
@@ -105,6 +119,7 @@ public class Pipeline implements Serializable {
 					Annotation[] anno = method.getAnnotations();
 					for (Annotation eachAnno : anno) {
 						String annoName = eachAnno.annotationType().getName();
+						// check for Initialize annotation
 						if(annoName.equals(Initialize.class.getName())){
 							invokeInitialization(method,eachEngine);
 						}
@@ -131,7 +146,19 @@ public class Pipeline implements Serializable {
 		 */
 		private void invokeInitialization(Method methodToInvoke,CoreAnnotationProcessor engine){
 			try {
-				methodToInvoke.invoke(engine, null);
+				Class<?>[] methodParms = methodToInvoke.getParameterTypes();
+				if(methodParms.length > 0){ // This init method has parameter args
+					for(Class<?> eachParms : methodParms){
+						if(eachParms.equals(PipelineContext.class)){
+							methodToInvoke.invoke(engine, pipelineContext);
+							break;
+						}
+					}
+				}else { // no arg method
+					methodToInvoke.invoke(engine);
+				}
+				
+				
 			} catch (IllegalArgumentException e) {
 				log.error("The initialization method in the analysis engine,"+ engine.getClass().getName() +" must have a no-argument parameter such as init()");
 				e.printStackTrace();
@@ -147,7 +174,8 @@ public class Pipeline implements Serializable {
 	
 	private Pipeline(Assemble assembly){
 		pipelineName = assembly.pipelineName;
-		pipeline = assembly.pipeline;
+		annotatorPipeline = assembly.annotatorPipeline;
+		pipelineContext = assembly.pipelineContext;
 		
 	}
 	
@@ -164,7 +192,7 @@ public class Pipeline implements Serializable {
 		
 		CommonAnalysisStructure cas = BaseCASImpl.createInstance(text);
 		
-		for(CoreAnnotationProcessor eachAe : pipeline){
+		for(CoreAnnotationProcessor eachAe : annotatorPipeline){
 			eachAe.process(cas);
 			
 		}
@@ -187,7 +215,7 @@ public class Pipeline implements Serializable {
 		List<CoreAnnotationProcessor> newInstanceList = new ArrayList<CoreAnnotationProcessor>();
 		
 		// create new instances of each processor
-		for(CoreAnnotationProcessor eachAe : pipeline){
+		for(CoreAnnotationProcessor eachAe : annotatorPipeline){
 			try {
 				newInstanceList.add(eachAe.getClass().newInstance());
 			} catch (InstantiationException e) {
@@ -199,6 +227,7 @@ public class Pipeline implements Serializable {
 		
 		Pipeline newPipeline = new Pipeline.Assemble(this.pipelineName)
 		.addAllAnalyzers(newInstanceList)
+		.setPipelineContext(this.pipelineContext)
 		.create();
 		
 		return newPipeline;
