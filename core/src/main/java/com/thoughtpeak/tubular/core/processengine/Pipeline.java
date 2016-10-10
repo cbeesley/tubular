@@ -226,8 +226,8 @@ public class Pipeline implements Serializable {
 		}
 		
 		Pipeline newPipeline = new Pipeline.Assemble(this.pipelineName)
-		.addAllAnalyzers(newInstanceList)
 		.setPipelineContext(this.pipelineContext)
+		.addAllAnalyzers(newInstanceList)
 		.create();
 		
 		return newPipeline;
