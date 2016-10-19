@@ -23,7 +23,7 @@ import com.thoughtpeak.tubular.distmode.SparkWorkListCollector;
 import com.thoughtpeak.tubular.distmode.confs.SparkRunnerConfiguration;
 import com.thoughtpeak.tubular.distmode.types.MapperResultType;
 
-public class AnnotationCounterRunner extends BaseSparkRunner {
+public class AnnotationCounterRunner extends BaseSparkRunner<MapperResultType> {
 
 	private static final long serialVersionUID = -4467055995049235517L;
 
@@ -35,7 +35,7 @@ public class AnnotationCounterRunner extends BaseSparkRunner {
 	
 	@Override
 	protected <T extends BaseWorkItem> void beginJob(final Pipeline pipeline,
-			final SparkWorkListCollector<T> worklist) {
+			final SparkWorkListCollector<T,MapperResultType> worklist) {
 		SparkConf sparkConf = new SparkConf().setMaster(runnerConfig.getRuntimeMode()).setAppName(runnerConfig.getAppName());
 		//sparkConf.set(key, value)
 		JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);

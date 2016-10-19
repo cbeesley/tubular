@@ -14,13 +14,16 @@ import com.thoughtpeak.tubular.distmode.types.MapperResultType;
  * @param <T> - The work item class that is extended from the BaseWorkItem that is used as the source to work on 
  * through the pipeline.
  * 
+ * @param <V>  - The value you want to map back to the spark driver of type V. This is for mapping all the annotations
+ * down to a single object (V) so that it can be filtered or mapped.
+ * 
  * If your collection in the worklist is larger than memory can hold, then consider writing out the worklist to a text file
  * format on a cluster such as hdfs, then use the text loader as a data source which uses block size partitions.
  * 
  * You must also ensure that the classes you use that are defined in instance variables implement serializable or marked as
  * transient
  */
-public interface SparkWorkListCollector<T extends BaseWorkItem> extends WorkListDocumentCollector<T>{
+public interface SparkWorkListCollector<T extends BaseWorkItem, V> extends WorkListDocumentCollector<T>{
 	/**
 	 * Called by each pipeline run iteration, by the spark runner to retrieve the class annotations that you want to process
 	 * in additional reduce/pair operations. 
@@ -33,7 +36,7 @@ public interface SparkWorkListCollector<T extends BaseWorkItem> extends WorkList
 	 * @param workItem - The work item class being analyzed by the pipeline iteration
 	 * @return The generic result type that spark can process into additional RDD
 	 */
-	public List<MapperResultType> initialPipelineResultsFilter(CommonAnalysisStructure cas, T workItem);
+	public List<V> initialPipelineResultsFilter(CommonAnalysisStructure cas, T workItem);
 	/**
 	 * Spark can parallelize the entire collection directly instead of calling the getNext()
 	 * in the worklist. This is useful in cases where you want Spark to handle the retrieval of the source
@@ -44,5 +47,6 @@ public interface SparkWorkListCollector<T extends BaseWorkItem> extends WorkList
 	 * the getNext() in the worklist.
 	 */
 	public List<T> getCollection();
+	
 
 }

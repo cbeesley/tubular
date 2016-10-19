@@ -6,9 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.spark.api.java.JavaRDD;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
-import org.apache.spark.api.java.function.PairFlatMapFunction;
+import org.apache.spark.api.java.function.Function;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
@@ -18,7 +17,6 @@ import com.thoughtpeak.tubular.core.runners.CoreRunner;
 import com.thoughtpeak.tubular.core.worklist.BaseWorkItem;
 import com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector;
 import com.thoughtpeak.tubular.distmode.confs.SparkRunnerConfiguration;
-import com.thoughtpeak.tubular.distmode.types.MapperResultType;
 /**
  * Base spark driver class for extending and running pipelines over a cluster or
  * standalone mode. It main purpose is to setup configuration and setup external datasource for
@@ -32,10 +30,13 @@ import com.thoughtpeak.tubular.distmode.types.MapperResultType;
  * Serializable. If the instance is not a class you can modify (like an instance variable), then it must
  * be static or if you dont need the field during execution, mark it as transient.
  * 
+ * V - The type you want to return to the mapper. This could be a single annotation type that combines
+ * all of the features from other types into a single view
+ * 
  * @author chrisbeesley
  *
  */
-public abstract class BaseSparkRunner implements CoreRunner, Serializable{
+public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 	/**
 	 * Warning - any fields here need to be serializable
 	 */
@@ -62,7 +63,7 @@ public abstract class BaseSparkRunner implements CoreRunner, Serializable{
 	 * @param worklist
 	 */
 	protected abstract <T extends BaseWorkItem> void beginJob(final Pipeline pipeline,
-			final SparkWorkListCollector<T> worklist);
+			final SparkWorkListCollector<T,V> worklist);
 
 	@Override
 	public <T extends BaseWorkItem> void execute(final Pipeline pipeline,
@@ -70,7 +71,7 @@ public abstract class BaseSparkRunner implements CoreRunner, Serializable{
 		// check if this is a spark based worklist
 		if (worklist instanceof SparkWorkListCollector) {
 			
-			beginJob(pipeline,(SparkWorkListCollector<T>)worklist);
+			beginJob(pipeline,(SparkWorkListCollector<T,V>)worklist);
 
 		}
 
@@ -80,9 +81,12 @@ public abstract class BaseSparkRunner implements CoreRunner, Serializable{
 	}
 	
 
+	
 	/**
-	 * Transform that builds an RDD that will use the Pipeline to generate annotations. The annotations must then
-	 * be filtered to MapperResultTypes so that they can be used in subsequent actions and transforms.
+	 * Transform that builds an RDD that will use the Pipeline to generate annotations. It uses the spark partition RDD and applies a
+	 * flat map function to flatten down the annotations into results. Each partition is divided based on the number of cores/executors
+	 * that the config specifies. The annotations must then be filtered to the "V" type that you specify in the extended
+	 * class so that they can be used in subsequent actions and transforms.
 	 * 
 	 * If the runner config UseBaseWorkItemText is true, then this transform requires
 	 * the text getter in BaseWorkItem to not be null and contain the subject of analysis for the pipeline.
@@ -94,21 +98,21 @@ public abstract class BaseSparkRunner implements CoreRunner, Serializable{
 	 * @param worklist - The items to process. 
 	 * @return A RDD that contains MapperResultTypes that the worklist implementations converts to from CAS annotations
 	 */
-	protected <T extends BaseWorkItem> JavaRDD<MapperResultType> createPartitionPipelineBasedRDD( final Pipeline pipeline,
-			JavaRDD<T> input,final SparkWorkListCollector<T> worklist) {
+	protected <T extends BaseWorkItem> JavaRDD<V> createPartitionPipelineBasedRDD( final Pipeline pipeline,
+			JavaRDD<T> input,final SparkWorkListCollector<T,V> worklist) {
 		
 		
 		// else then use the entire collection from the configured source
 		// Load our input data either by the worklist or external source like cassandra or database.
 		
 		// transform that runs the pipeline over the input RDD
-		JavaRDD<MapperResultType> annotations = input.mapPartitions(new FlatMapFunction<Iterator<T>, MapperResultType>() {
+		JavaRDD<V> annotations = input.mapPartitions(new FlatMapFunction<Iterator<T>, V>() {
 			
 			private static final long serialVersionUID = -852396122968738184L;
 
-			public Iterable<MapperResultType> call(Iterator<T> partitionItems) {
+			public Iterable<V> call(Iterator<T> partitionItems) {
 				
-				List<MapperResultType> results = new ArrayList<MapperResultType>();
+				List<V> results = new ArrayList<V>();
 				Pipeline active_pipeline = pipeline.createNewCopy();
 				
 				try {
@@ -121,7 +125,7 @@ public abstract class BaseSparkRunner implements CoreRunner, Serializable{
 					while(partitionItems.hasNext()){
 						T eachItem = partitionItems.next();
 						CommonAnalysisStructure cas = active_pipeline.executePipeline(eachItem.getDocumentText());
-						results = worklist.initialPipelineResultsFilter(cas, eachItem);
+						results.addAll(worklist.initialPipelineResultsFilter(cas, eachItem));
 						worklist.workItemCompleted(cas, eachItem);
 					}
 					
@@ -137,6 +141,7 @@ public abstract class BaseSparkRunner implements CoreRunner, Serializable{
 		return annotations;
 
 	}
+	
 	
 	/**
 	   * Get an RDD for a given Hadoop file with an arbitrary new API InputFormat
