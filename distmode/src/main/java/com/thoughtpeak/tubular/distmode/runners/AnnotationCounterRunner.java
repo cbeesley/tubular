@@ -18,6 +18,7 @@ import scala.Tuple2;
 import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
 import com.thoughtpeak.tubular.core.processengine.Pipeline;
 import com.thoughtpeak.tubular.core.worklist.BaseWorkItem;
+import com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector;
 import com.thoughtpeak.tubular.distmode.BaseSparkRunner;
 import com.thoughtpeak.tubular.distmode.SparkWorkListCollector;
 import com.thoughtpeak.tubular.distmode.confs.SparkRunnerConfiguration;
