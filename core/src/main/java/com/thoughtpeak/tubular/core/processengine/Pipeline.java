@@ -16,7 +16,11 @@ import java.util.Set;
 
 
 
+
+
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.log4j.Logger;
+import org.joda.time.DateTime;
 
 import com.thoughtpeak.tubular.core.annotations.AnalysisComponent;
 import com.thoughtpeak.tubular.core.annotations.Initialize;
@@ -92,7 +96,7 @@ public class Pipeline implements Serializable {
 			}
 			// now look thru each annotator and see which java annotations need to be processed
 			for (CoreAnnotationProcessor eachEngine : annotatorPipeline) {
-
+				
 				Class<?> inst = eachEngine.getClass();
 				if(inst.getAnnotations().length < 1){
 					// Error? no annotation marker present
@@ -229,7 +233,7 @@ public class Pipeline implements Serializable {
 		.setPipelineContext(this.pipelineContext)
 		.addAllAnalyzers(newInstanceList)
 		.create();
-		
+		log.info("Creating a new Pipeline instance");
 		return newPipeline;
 	}
 	
