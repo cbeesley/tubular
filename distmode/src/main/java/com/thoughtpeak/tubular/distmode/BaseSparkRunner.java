@@ -94,7 +94,7 @@ public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 	 * If its false, then this method will use the configured DataSource to attempt to retrieve the source text which could be
 	 * a text file, Hbase/Cassandra, or database.
 	 * 
-	 * @param pipeline - A single pipeline instance
+	 * @param pipeline - A single pipeline instance. Depending on the number of cores, N instances of the pipeline are created
 	 * @param worklist - The items to process. 
 	 * @return A RDD that contains MapperResultTypes that the worklist implementations converts to from CAS annotations
 	 */
