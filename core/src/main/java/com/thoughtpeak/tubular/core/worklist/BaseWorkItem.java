@@ -41,16 +41,16 @@ public abstract class BaseWorkItem implements Serializable{
 	public abstract String getDocumentText();
 	
 	/**
-	 * This method allows for overriding the document text. The reasoning
+	 * This method allows for setting the initial view of the source text. The reasoning
 	 * is to transform the text into another format before its gets sent to the pipeline
 	 * The normal way is to create a cas view but if you have a large amount of documents to 
-	 * process and you have a more effcient way to perform an operation on it than within the pipeline, then
+	 * process and you have a more efficient way to perform an operation on it than within the pipeline, then
 	 * use this method. Its up the extending classes to decide to override it or not
 	 * 
 	 * @param text
 	 */	
-	public void overrideText(String text){
-		throw new IllegalArgumentException("This type does not allow to override the text");
+	public void setInitialView(String text){
+		throw new IllegalArgumentException("This type does not support override the text");
 	}
 
 	public String getBaseIdentifier() {

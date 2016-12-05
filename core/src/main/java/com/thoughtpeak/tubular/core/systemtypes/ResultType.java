@@ -21,7 +21,7 @@ public class ResultType extends BaseWorkItem {
 	}
 
 	@Override
-	public void overrideText(String text) {
+	public void setInitialView(String text) {
 		throw new IllegalArgumentException("This type does not allow to override the text");
 		
 	}

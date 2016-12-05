@@ -47,11 +47,17 @@ public class PipelineContextTest {
 		PipelineContext ctx = new PipelineContext();
 		Concept concept = new Concept();
 		concept.setCoveredText("testText");
+		Concept concept2 = new Concept();
+		concept2.setCoveredText("testText2");
+		List<Concept> testList = Lists.newArrayList(concept,concept2);
+		
 		TestType test = new TestType();
 		test.setCoveredText("anotherTest");
 		// adding some mock type into the context
 		ctx.addGenericConfigurationParameter("SentenceAnnotator", "someParm", concept);
 		ctx.addGenericConfigurationParameter("SentenceAnnotator", "anotherParm", test);
+		
+		ctx.addGenericConfigurationParameter("ListTestAnnotator", "anotherParm", testList);
 		
 		Optional<Concept> someParm = ctx.getGenericConfigurationParameter("SentenceAnnotator", "someParm");
 		Optional<TestType> anotherParm = ctx.getGenericConfigurationParameter("SentenceAnnotator", "anotherParm");
@@ -66,6 +72,9 @@ public class PipelineContextTest {
 		// Try a missing annotator config
 		Optional<Concept> missingAnnotator = ctx.getGenericConfigurationParameter("MissingAnnotator", "missingParm");
 		assertFalse(missingAnnotator.isPresent());
+		
+		Optional<List<Concept>> listTestResult = ctx.getGenericConfigurationParameter("ListTestAnnotator", "anotherParm");
+		assertFalse(listTestResult.get().isEmpty());
 	}
 
 }

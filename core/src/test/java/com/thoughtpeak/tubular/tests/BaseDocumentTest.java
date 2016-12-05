@@ -66,7 +66,7 @@ public class BaseDocumentTest {
 				    				}
 
 									@Override
-									public void overrideText(String text) {
+									public void setInitialView(String text) {
 										// TODO Auto-generated method stub
 										
 									}

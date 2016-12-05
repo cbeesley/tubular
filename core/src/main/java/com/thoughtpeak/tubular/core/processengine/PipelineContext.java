@@ -65,6 +65,8 @@ public class PipelineContext implements Serializable{
 	}
 	/**
 	 * This returns the configuration value for the given key
+	 * The caller must ensure that they are using the correct type or a cast exception 
+	 * will occur
 	 * 
 	 * @param annotatorName
 	 * @param keyName
