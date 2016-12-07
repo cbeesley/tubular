@@ -1,7 +1,11 @@
 package com.thoughtpeak.tubular.core.processengine;
 
-public class GenericConfigKeyValue <T>{
+import java.io.Serializable;
+
+public class GenericConfigKeyValue <T> implements Serializable {
 	
+	private static final long serialVersionUID = -9018528694031020899L;
+
 	private String key;
 	
 	private T value;
