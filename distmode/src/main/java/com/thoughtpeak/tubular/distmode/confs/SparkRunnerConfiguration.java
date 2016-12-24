@@ -20,10 +20,21 @@ public class SparkRunnerConfiguration implements ExecutionConfiguration,Serializ
 	 * to run on a Spark standalone cluster.
 	 */
 	private String runtimeMode;
+	/**
+	 * The number of worker threads to use during the pipeline
+	 * processing phase. Not to be confused with the Spark cores setting
+	 * 
+	 * Default is 10
+	 */
+	private int numWorkerThreads = 10;
 	
 	/** Set a name for your application. Shown in the Spark web UI.
 	 */
 	private String appName;
+	
+	private String userId;
+	
+	private String shortDescription;
 	/**
 	 * The name of a supported document source to be used such as hbase, cassandra, sql etc
 	 */
@@ -111,6 +122,30 @@ public class SparkRunnerConfiguration implements ExecutionConfiguration,Serializ
 
 	public void setUseBaseWorkItemText(boolean useBaseWorkItemText) {
 		this.useBaseWorkItemText = useBaseWorkItemText;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+
+	public String getShortDescription() {
+		return shortDescription;
+	}
+
+	public void setShortDescription(String shortDescription) {
+		this.shortDescription = shortDescription;
+	}
+
+	public int getNumWorkerThreads() {
+		return numWorkerThreads;
+	}
+
+	public void setNumWorkerThreads(int numWorkerThreads) {
+		this.numWorkerThreads = numWorkerThreads;
 	}
 	
 	

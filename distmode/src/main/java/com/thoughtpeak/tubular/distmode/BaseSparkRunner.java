@@ -2,17 +2,31 @@ package com.thoughtpeak.tubular.distmode;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.log4j.Logger;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.google.common.collect.Iterators;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
 import com.thoughtpeak.tubular.core.processengine.Pipeline;
+import com.thoughtpeak.tubular.core.processengine.PipelineCreationFactory;
+import com.thoughtpeak.tubular.core.runners.ConcurrentRunner;
 import com.thoughtpeak.tubular.core.runners.CoreRunner;
 import com.thoughtpeak.tubular.core.worklist.BaseWorkItem;
 import com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector;
@@ -37,6 +51,8 @@ import com.thoughtpeak.tubular.distmode.confs.SparkRunnerConfiguration;
  *
  */
 public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
+	
+	private transient Logger log = Logger.getLogger(BaseSparkRunner.class);
 	/**
 	 * Warning - any fields here need to be serializable
 	 */
@@ -44,17 +60,26 @@ public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 	
 	protected SparkRunnerConfiguration runnerConfig;
 	
+	private int NUM_WORKERS;
+	
+	/**
+	 * when true, tells the runner to wait until the worklist is completed and
+	 * halting the main execution thread
+	 */
+	private boolean waitToComplete = true;
+	
 	//protected Logger log = Logger.getLogger(SparkRunner.class);
 	
 	public BaseSparkRunner(SparkRunnerConfiguration config){
 		
 		runnerConfig = config;
+		NUM_WORKERS = config.getNumWorkerThreads();
+		
 		// config parm check for required config options
 		// check destination
 		Preconditions.checkArgument(!Strings.isNullOrEmpty(config.getDestinationPath()),
 				"A destination path needs to be specfied in the configuration");
-		Preconditions.checkArgument(!Strings.isNullOrEmpty(config.getRuntimeMode()),
-				"No setRuntimeMode - A runtime mode needs to be specified such as local, \"local[4]\" to run locally with 4 cores, or \"spark://master:7077\" to run on a Spark standalone cluster.");
+		
 	}
 	/**
 	 * Starts the execution of the spark job in the descendant class.
@@ -141,6 +166,115 @@ public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 		return annotations;
 
 	}
+	
+	protected <T extends BaseWorkItem> JavaRDD<V> createPartitionPipelineBasedRDDAsync( final Pipeline pipeline,
+			JavaRDD<T> input,final SparkWorkListCollector<T,V> worklist) {
+		
+		
+		// else then use the entire collection from the configured source
+		// Load our input data either by the worklist or external source like cassandra or database.
+		
+		// transform that runs the pipeline over the input RDD
+		
+		JavaRDD<V> annotations = input.mapPartitions(new FlatMapFunction<Iterator<T>, V>() {
+			
+			private static final long serialVersionUID = -852396122968738184L;
+
+			public Iterable<V> call(Iterator<T> partitionItems) {
+				
+				final List<V> rresults = Collections.synchronizedList(new ArrayList<V>());
+				
+				ListeningExecutorService jobServicePool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(NUM_WORKERS));
+				final GenericObjectPool<Pipeline> pipelinePool = new GenericObjectPool<Pipeline>(new PipelineCreationFactory(pipeline));
+				// mirror the number of worker threads for now
+				pipelinePool.setMaxTotal(NUM_WORKERS);
+				System.out.println("************************************** Allocating partition");
+				
+				while(partitionItems.hasNext()){
+					
+					final T eachItem = partitionItems.next();
+					final ListenableFuture<List<V>> future = jobServicePool.submit(new Callable<List<V>>() {
+						
+						
+
+						@Override
+						public List<V> call() throws Exception {
+							Pipeline pipeline = null;
+							CommonAnalysisStructure cas = null;
+							List<V> results = new ArrayList<V>();
+							try {
+								pipeline = pipelinePool.borrowObject();
+								cas = pipeline.executePipeline(eachItem.getDocumentText());
+								worklist.workItemCompleted(cas, eachItem);
+								rresults.addAll(worklist.initialPipelineResultsFilter(cas, eachItem));
+								
+
+							} catch (Exception e) {
+								log.error("Error during pipeline processing: ", e);
+								throw new Exception("Error during pipeline processing:",e);
+
+							}finally {
+								
+								try {
+									if (pipeline != null) {
+										pipelinePool.returnObject(pipeline);
+									}
+								} catch (Exception e) { // catch and throw anything awry
+									log.error("Error returning pipeline object to job pool", e);
+									throw new Exception("Error returning pipeline object to job pool",e);
+								}
+							}
+
+							return results;//Return annotations
+						}
+					});// end future pool
+					
+					/**
+					 * Adds a listener to each task which tracks its
+					 * state and completion
+					 */
+					future.addListener(new Runnable() {
+						@Override
+						public void run() {
+							try {
+								
+								future.get();
+
+								// TODO check code here for termination flags, update status counters, etc
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							} catch (ExecutionException e) {
+								e.printStackTrace();
+							}
+						}
+					}, MoreExecutors.sameThreadExecutor());
+				}// end partition loop
+				// Tell the job pool to shutdown but not terminate pending tasks
+				jobServicePool.shutdown();
+				// Monitor loop to determine when the pool is finished
+				while(true){
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+
+						e.printStackTrace();
+					}
+					if(jobServicePool.isTerminated()){
+						System.out.println("************************************** Stopping this pool");
+						break;
+					}
+				}
+				jobServicePool.shutdownNow();
+				
+				
+				return rresults;
+			}
+			
+			});
+		return annotations;
+
+	}
+	
 	
 	
 	/**
