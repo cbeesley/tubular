@@ -16,7 +16,7 @@ import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
  *
  * @param <T>
  */
-public interface WorkListDocumentCollector<T extends BaseWorkItem> extends Closeable{
+public interface WorkListDocumentCollector<T extends BaseWorkItem,U> extends Closeable{
 	/**
 	 * Gets the next document in the worklist
 	 * @return The defined type which is 

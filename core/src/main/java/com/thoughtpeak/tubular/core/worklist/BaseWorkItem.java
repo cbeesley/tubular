@@ -15,8 +15,9 @@ public abstract class BaseWorkItem implements Serializable{
 	
 	private static final long serialVersionUID = -7414253574946304250L;
 	/**
-	 * Optionally set a unique identifier to retrieve the document from
-	 * an external source
+	 * Optionally set a unique identifier/composite key to retrieve the document from
+	 * an external source such as running the document retrieval within a spark
+	 * work/partition for example
 	 */
 	private String baseIdentifier;
 	

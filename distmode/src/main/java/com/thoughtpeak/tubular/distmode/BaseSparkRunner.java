@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.FlatMapFunction;
@@ -53,6 +54,8 @@ import com.thoughtpeak.tubular.distmode.confs.SparkRunnerConfiguration;
 public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 	
 	private transient Logger log = Logger.getLogger(BaseSparkRunner.class);
+	
+	
 	/**
 	 * Warning - any fields here need to be serializable
 	 */
@@ -83,20 +86,22 @@ public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 	}
 	/**
 	 * Starts the execution of the spark job in the descendant class.
+	 * @param <U>
+	 * @param <U>
 	 * 
 	 * @param pipeline
 	 * @param worklist
 	 */
-	protected abstract <T extends BaseWorkItem> void beginJob(final Pipeline pipeline,
-			final SparkWorkListCollector<T,V> worklist);
+	protected abstract <T extends BaseWorkItem, U> void beginJob(final Pipeline pipeline,
+			final SparkWorkListCollector<T,U,V> worklist);
 
 	@Override
-	public <T extends BaseWorkItem> void execute(final Pipeline pipeline,
-			final WorkListDocumentCollector<T> worklist) {
+	public <T extends BaseWorkItem, U> void execute(final Pipeline pipeline,
+			final WorkListDocumentCollector<T,U> worklist) {
 		// check if this is a spark based worklist
 		if (worklist instanceof SparkWorkListCollector) {
 			
-			beginJob(pipeline,(SparkWorkListCollector<T,V>)worklist);
+			beginJob(pipeline,(SparkWorkListCollector<T,U,V>)worklist);
 
 		}
 
@@ -123,20 +128,20 @@ public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 	 * @param worklist - The items to process. 
 	 * @return A RDD that contains MapperResultTypes that the worklist implementations converts to from CAS annotations
 	 */
-	protected <T extends BaseWorkItem> JavaRDD<V> createPartitionPipelineBasedRDD( final Pipeline pipeline,
-			JavaRDD<T> input,final SparkWorkListCollector<T,V> worklist) {
+	protected <T extends BaseWorkItem,U> JavaRDD<V> createPartitionPipelineBasedRDD( final Pipeline pipeline,
+			JavaRDD<U> input,final SparkWorkListCollector<T,U,V> worklist) {
 		
 		
 		// else then use the entire collection from the configured source
 		// Load our input data either by the worklist or external source like cassandra or database.
 		
 		// transform that runs the pipeline over the input RDD
-		JavaRDD<V> annotations = input.mapPartitions(new FlatMapFunction<Iterator<T>, V>() {
+		JavaRDD<V> annotations = input.mapPartitions(new FlatMapFunction<Iterator<U>, V>() {
 			
 			private static final long serialVersionUID = -852396122968738184L;
 
-			public Iterable<V> call(Iterator<T> partitionItems) {
-				
+			public Iterable<V> call(Iterator<U> partitionItems) {
+				Iterator<T> loadedPartition = worklist.loadDocumentsFromSource(partitionItems);
 				List<V> results = new ArrayList<V>();
 				Pipeline active_pipeline = pipeline.createNewCopy();
 				
@@ -147,8 +152,8 @@ public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 					}else { // we need to use the data driver to get the source using the id
 						
 					}
-					while(partitionItems.hasNext()){
-						T eachItem = partitionItems.next();
+					while(loadedPartition.hasNext()){
+						T eachItem = loadedPartition.next();
 						CommonAnalysisStructure cas = active_pipeline.executePipeline(eachItem.getDocumentText());
 						results.addAll(worklist.initialPipelineResultsFilter(cas, eachItem));
 						worklist.workItemCompleted(cas, eachItem);
@@ -167,36 +172,34 @@ public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 
 	}
 	
-	protected <T extends BaseWorkItem> JavaRDD<V> createPartitionPipelineBasedRDDAsync( final Pipeline pipeline,
-			JavaRDD<T> input,final SparkWorkListCollector<T,V> worklist) {
+	protected <T extends BaseWorkItem,U> JavaRDD<V> createPartitionPipelineBasedRDDAsync( final Pipeline pipeline,
+			JavaRDD<U> input,final SparkWorkListCollector<T,U,V> worklist) {
 		
 		
-		// else then use the entire collection from the configured source
-		// Load our input data either by the worklist or external source like cassandra or database.
-		
-		// transform that runs the pipeline over the input RDD
-		
-		JavaRDD<V> annotations = input.mapPartitions(new FlatMapFunction<Iterator<T>, V>() {
+		// Dont use logger inside the RDD closure as its executed on a worker and is null
+		JavaRDD<V> annotations = input.mapPartitions(new FlatMapFunction<Iterator<U>, V>() {
 			
 			private static final long serialVersionUID = -852396122968738184L;
+			
 
-			public Iterable<V> call(Iterator<T> partitionItems) {
+			public Iterable<V> call(Iterator<U> partitionItems) {
 				
 				final List<V> rresults = Collections.synchronizedList(new ArrayList<V>());
+				
+				// Start the loading of the source data into this partition
+				Iterator<T> loadedPartition = worklist.loadDocumentsFromSource(partitionItems);
 				
 				ListeningExecutorService jobServicePool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(NUM_WORKERS));
 				final GenericObjectPool<Pipeline> pipelinePool = new GenericObjectPool<Pipeline>(new PipelineCreationFactory(pipeline));
 				// mirror the number of worker threads for now
 				pipelinePool.setMaxTotal(NUM_WORKERS);
-				System.out.println("************************************** Allocating partition");
 				
-				while(partitionItems.hasNext()){
+				
+				while(loadedPartition.hasNext()){
 					
-					final T eachItem = partitionItems.next();
+					final T eachItem = loadedPartition.next();
 					final ListenableFuture<List<V>> future = jobServicePool.submit(new Callable<List<V>>() {
 						
-						
-
 						@Override
 						public List<V> call() throws Exception {
 							Pipeline pipeline = null;
@@ -210,8 +213,7 @@ public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 								
 
 							} catch (Exception e) {
-								log.error("Error during pipeline processing: ", e);
-								throw new Exception("Error during pipeline processing:",e);
+								throw new Exception("Error during pipeline processing in RDD:",e);
 
 							}finally {
 								
@@ -220,8 +222,8 @@ public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 										pipelinePool.returnObject(pipeline);
 									}
 								} catch (Exception e) { // catch and throw anything awry
-									log.error("Error returning pipeline object to job pool", e);
-									throw new Exception("Error returning pipeline object to job pool",e);
+									
+									throw new Exception("Error returning pipeline object to job pool in RDD",e);
 								}
 							}
 
@@ -260,7 +262,6 @@ public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 						e.printStackTrace();
 					}
 					if(jobServicePool.isTerminated()){
-						System.out.println("************************************** Stopping this pool");
 						break;
 					}
 				}

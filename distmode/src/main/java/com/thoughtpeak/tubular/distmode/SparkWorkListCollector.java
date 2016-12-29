@@ -1,11 +1,13 @@
 package com.thoughtpeak.tubular.distmode;
 
+import java.util.Iterator;
 import java.util.List;
 
+import com.google.common.base.Optional;
 import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
 import com.thoughtpeak.tubular.core.worklist.BaseWorkItem;
 import com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector;
-import com.thoughtpeak.tubular.distmode.types.MapperResultType;
+import com.thoughtpeak.tubular.distmode.functions.DataSourcePartitionDriver;
 /**
  * Custom worklist that provides extra functions for operating over a spark cluster
  * 
@@ -22,8 +24,12 @@ import com.thoughtpeak.tubular.distmode.types.MapperResultType;
  * 
  * You must also ensure that the classes you use that are defined in instance variables implement serializable or marked as
  * transient
+ * 
+ * <T> - The type you want to work with in the worklist to extract annotations from
+ * <U> - The type you want to use as the source id's
+ * <V> - The type you want to use to hold the results
  */
-public interface SparkWorkListCollector<T extends BaseWorkItem, V> extends WorkListDocumentCollector<T>{
+public interface SparkWorkListCollector<T extends BaseWorkItem,U, V> extends WorkListDocumentCollector<T,U>{
 	/**
 	 * Called by each pipeline run iteration, by the spark runner to retrieve the class annotations that you want to process
 	 * in additional reduce/pair operations. 
@@ -46,7 +52,17 @@ public interface SparkWorkListCollector<T extends BaseWorkItem, V> extends WorkL
 	 * @return A list of T types to create the initial RDD. If this is null or empty, then the runner will attempt to call 
 	 * the getNext() in the worklist.
 	 */
-	public List<T> getCollection();
+	public List<U> getSourceIds();
+	
+	/**
+	 * Define your data source configuration and loading of your source data from an
+	 * external source on a per partition basis instead of loading the
+	 * entire source dataset and transmitting it to the cluster. By using this function, only the data source
+	 * the worker needs is loaded for that particular partition its working on
+	 * @param sourceIds
+	 * @return
+	 */
+	public Iterator<T> loadDocumentsFromSource(Iterator<U> sourceIds);
 	
 
 }

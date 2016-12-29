@@ -10,6 +10,11 @@ import com.thoughtpeak.tubular.core.ExecutionConfiguration;
 public class SparkRunnerConfiguration implements ExecutionConfiguration,Serializable {
 	
 	private static final long serialVersionUID = -2077469675741474780L;
+	
+	public static enum RESULTS_OUTPUT_TYPE {
+		CSV,
+		PARQUET
+	}
 
 	private String sourceTextFilePath;
 	
@@ -46,6 +51,8 @@ public class SparkRunnerConfiguration implements ExecutionConfiguration,Serializ
 	 * text source via the configure data source using BaseWorkItem's baseIdentifiers field.
 	 */
 	private boolean useBaseWorkItemText = false;
+	
+	private RESULTS_OUTPUT_TYPE fileOutputType;
 	/**
 	 * Set this to load property files that you need to load on the cluster
 	 * They need to be located in the classpath of the jar that is deployed 
@@ -70,6 +77,10 @@ public class SparkRunnerConfiguration implements ExecutionConfiguration,Serializ
 	}
 	
 	private Map<String,String> configParameter = new HashMap<String,String>();
+	
+	public void setConfigurationParameter(String key,String value){
+		configParameter.put(key, value);
+	}
 	
 	public String getConfigurationParameter(String key){
 		
@@ -146,6 +157,14 @@ public class SparkRunnerConfiguration implements ExecutionConfiguration,Serializ
 
 	public void setNumWorkerThreads(int numWorkerThreads) {
 		this.numWorkerThreads = numWorkerThreads;
+	}
+
+	public RESULTS_OUTPUT_TYPE getFileOutputType() {
+		return fileOutputType;
+	}
+
+	public void setFileOutputType(RESULTS_OUTPUT_TYPE fileOutputType) {
+		this.fileOutputType = fileOutputType;
 	}
 	
 	

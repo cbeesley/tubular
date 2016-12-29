@@ -15,7 +15,7 @@ public class Tubular {
 		
 		workflow.getConfiguration();
 		Pipeline pipeline = workflow.getPipeline();
-		WorkListDocumentCollector<?> worklist = workflow.getWorkList();
+		WorkListDocumentCollector<?,?> worklist = workflow.getWorkList();
 		workflow.getRunner().execute(pipeline, worklist);
 		
 	}

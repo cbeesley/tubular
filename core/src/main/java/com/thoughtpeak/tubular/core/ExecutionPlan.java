@@ -17,7 +17,7 @@ public interface ExecutionPlan {
 	
 	public void getConfiguration();
 	
-	public WorkListDocumentCollector<?> getWorkList();
+	public WorkListDocumentCollector<?,?> getWorkList();
 	
 	public Pipeline getPipeline();
 	

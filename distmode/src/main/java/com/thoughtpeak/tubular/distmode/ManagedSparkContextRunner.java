@@ -17,7 +17,7 @@ import com.thoughtpeak.tubular.distmode.confs.SparkRunnerConfiguration;
 public abstract class ManagedSparkContextRunner<V> extends BaseSparkRunner<V> {
 
 	/**
-	 * Extending classes need to take care when using this varible
+	 * Extending classes need to take care when using this variable
 	 * The spark context in this implementation is managed by a master class so care
 	 * must be given to not accidently close the context for example
 	 */

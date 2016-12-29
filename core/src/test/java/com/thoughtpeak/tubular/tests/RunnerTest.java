@@ -98,7 +98,7 @@ public class RunnerTest extends BaseDocumentTest {
 		}
 	}
 	
-	private class TestWorklist implements WorkListDocumentCollector<BaseWorkItem> {
+	private class TestWorklist implements WorkListDocumentCollector<BaseWorkItem,BaseWorkItem> {
 		
 		private List<BaseWorkItem> worklist;
 		

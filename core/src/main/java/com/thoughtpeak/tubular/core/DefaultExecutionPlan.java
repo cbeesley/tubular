@@ -33,7 +33,7 @@ public class DefaultExecutionPlan implements ExecutionPlan{
 	}
 
 	@Override
-	public WorkListDocumentCollector<?> getWorkList() {
+	public WorkListDocumentCollector<?,?> getWorkList() {
 		// TODO Auto-generated method stub
 		return null;
 	}

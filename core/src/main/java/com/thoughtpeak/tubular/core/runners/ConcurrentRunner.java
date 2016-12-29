@@ -40,7 +40,7 @@ public class ConcurrentRunner implements CoreRunner {
 	 * Creates a pool of pipelines then takes the worklist and processes an item in its own thread pipeline
 	 */
 	@Override
-	public <T extends BaseWorkItem> void execute(Pipeline pipeline, final WorkListDocumentCollector<T> worklist) {
+	public <T extends BaseWorkItem,U> void execute(Pipeline pipeline, final WorkListDocumentCollector<T,U> worklist) {
 
 		ListeningExecutorService jobServicePool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(NUM_WORKERS));
 

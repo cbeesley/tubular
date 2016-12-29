@@ -20,8 +20,8 @@ public class SimpleRunner implements CoreRunner{
 	
 
 	@Override
-	public <T extends BaseWorkItem> void execute(Pipeline pipeline,
-			WorkListDocumentCollector<T> worklist) {
+	public <T extends BaseWorkItem,U> void execute(Pipeline pipeline,
+			WorkListDocumentCollector<T,U> worklist) {
 		
 		Pipeline used = pipeline.createNewCopy();
 		

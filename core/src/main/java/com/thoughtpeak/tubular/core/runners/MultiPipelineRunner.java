@@ -23,7 +23,7 @@ public interface MultiPipelineRunner {
 	 * @param pipeline
 	 * @param worklist
 	 */
-	 public <T extends BaseWorkItem> void executeMultiplePipelines(List<Pipeline> pipelines, WorkListDocumentCollector<T> worklist);
+	 public <T extends BaseWorkItem,U> void executeMultiplePipelines(List<Pipeline> pipelines, WorkListDocumentCollector<T,U> worklist);
 
 
 

@@ -18,7 +18,7 @@ import com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector;
  */
 public interface CoreRunner {
 	
-	public <T extends BaseWorkItem> void execute(Pipeline pipeline, WorkListDocumentCollector<T> worklist);
+	public <T extends BaseWorkItem,U> void execute(Pipeline pipeline, WorkListDocumentCollector<T,U> worklist);
 	/**
 	 * This method gives the runner an option to execute multiple pipelines that have different types of annotators
 	 * upon which the results can then be joined together once each pipeline completes. 
