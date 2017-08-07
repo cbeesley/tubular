@@ -15,6 +15,7 @@ import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.Function;
 
@@ -32,6 +33,7 @@ import com.thoughtpeak.tubular.core.runners.CoreRunner;
 import com.thoughtpeak.tubular.core.worklist.BaseWorkItem;
 import com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector;
 import com.thoughtpeak.tubular.distmode.confs.SparkRunnerConfiguration;
+import com.thoughtpeak.tubular.distmode.confs.SparkRunnerConfiguration.RESULTS_OUTPUT_TYPE;
 /**
  * Base spark driver class for extending and running pipelines over a cluster or
  * standalone mode. It main purpose is to setup configuration and setup external datasource for
@@ -171,7 +173,15 @@ public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 		return annotations;
 
 	}
-	
+	/**
+	 * Runs a pool of pipelines in a spark rdd partition 
+	 * 
+	 * @param pipeline - The pipeline instance you want to run docs through
+	 * @param input - The input source type that represents a list of ids or docs that you want to use a a key to get
+	 * documents from an external source like hadoop
+	 * @param worklist - The worklist that describes the job config and how to process the annotations
+	 * @return
+	 */
 	protected <T extends BaseWorkItem,U> JavaRDD<V> createPartitionPipelineBasedRDDAsync( final Pipeline pipeline,
 			JavaRDD<U> input,final SparkWorkListCollector<T,U,V> worklist) {
 		
@@ -277,26 +287,34 @@ public abstract class BaseSparkRunner<V> implements CoreRunner, Serializable{
 	}
 	
 	
-	
 	/**
-	   * Get an RDD for a given Hadoop file with an arbitrary new API InputFormat
-	   * and extra configuration options to pass to the input format.
-	   *
-	   * @param conf Configuration for setting up the dataset. Note: This will be put into a Broadcast.
-	   *             Therefore if you plan to reuse this conf to create multiple RDDs, you need to make
-	   *             sure you won't modify the conf. A safe approach is always creating a new conf for
-	   *             a new RDD.
-	   * @param fClass Class of the InputFormat
-	   * @param kClass Class of the keys
-	   * @param vClass Class of the values
-	   *
-	   * '''Note:''' Because Hadoop's RecordReader class re-uses the same Writable object for each
-	   * record, directly caching the returned RDD will create many references to the same object.
-	   * If you plan to directly cache Hadoop writable objects, you should first copy them using
-	   * a `map` function.
-	   */
-	private void getHbaseRDD(){
-		//sc.newAPIHadoopRDD(conf, fClass, kClass, vClass)
+	 * Helper method for writing out results in two formats, parquet or csv
+	 * 
+	 * @param results
+	 * @param sparkContext
+	 */
+	protected void exportResultsWriter(JavaRDD<V> results,JavaSparkContext sparkContext){
+		
+		if(this.runnerConfig.getFileOutputType() == null){
+			throw new IllegalArgumentException("A file output type needs to be set for this spark job!");
+		}
+		if(this.runnerConfig.getFileOutputType().equals(RESULTS_OUTPUT_TYPE.CSV)){
+			// This will merge all workers specified in getRunttimeMode into a single result
+			// set if writing out to file system
+			// If the results are somewhat large, IE more than 2 gig this will be sloooow
+			results.saveAsTextFile(runnerConfig.getDestinationPath());
+			
+			
+		}
+		
+//		if(this.runnerConfig.getFileOutputType().equals(RESULTS_OUTPUT_TYPE.PARQUET)){
+//			// This is to setup for writing out parquet or performing filtering
+//			SQLContext sqlContext = new org.apache.spark.sql.SQLContext(sparkContext);
+//			// Convert the results into a dataframe
+//			DataFrame schemaPipelineResult = sqlContext.createDataFrame(results, AnnotationResult.class);
+//			
+//			schemaPipelineResult.coalesce(1).write().parquet(runnerConfig.getDestinationPath());
+//		}
 	}
 
 }

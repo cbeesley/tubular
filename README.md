@@ -1,13 +1,75 @@
 # Tubular
 Text Processing Framework
 
-This is a framework for creating text processing pipelines for anything from natural language processing to realtime message processing based loosely on the UIMA specification. Tubular allows you to create, test and execute text processing applications without regard for the underlying execution system. This could range from a single thread to parallel/distributed systems. 
+This is a framework for creating text processing pipelines for anything from natural language processing to realtime message processing based loosely on the UIMA specification. Tubular allows you to create, test and execute text processing applications without regard for the underlying execution system. This could range from a single thread to parallel/distributed systems like Spark.
+
+##Setup and Configuration
+This project currently is not in any repos yet so you will need to clone this repository.
+
+The first thing to create is the code that will run your processing logic using the Analysis component:
+
+```
+@AnalysisComponent(name = "TestWordTokenAnnotator" , dependsOnAnyOf = "DocumentPreProcess")
+public class TestWordTokenAnnotator implements CoreAnnotationProcessor{
+	
+	@Initialize
+	public void initialize(){
+		// Code to run when the pipeline is created
+		
+	}
+	
+	@Override
+	public void process(CommonAnalysisStructure cas) {
+		
+		// Processing logic goes here		
+		
+	}
+
+}
+```
+The CommonAnalysisStructure is an indexed view of what previous annotators in your pipeline have added until it reaches the next in line.
+
+### Configuration Parameters
+If you need to pass configuration parameters to your Analysis Component, the recommended way is to use a PipelineContext so that parameters may be distibuted correctly on anything from a single test runner to a Spark distrubuted job:
+
+```
+PipelineContext ctx = new PipelineContext();
+// Simple string based params are supported
+ctx.addAnnotationConfigurationParameter(TestSentenceDetector.ANNOTATOR_NAME, "someConfigParm", "/opt/some/file.gz");
+
+// You can use string based lists too
+List<String> parmList = Lists.newArrayList("parm1","parm2,", "etc");
+ctx.addAnnotationConfigurationParameter(TestSentenceDetector.ANNOTATOR_NAME, "configList", parmList);
+
+// You can use your own types too
+TestType test = new TestType();
+test.setCoveredText("anotherTest");
+
+ctx.addGenericConfigurationParameter("SentenceAnnotator", "someParm", test);
+
+```
+
+Then in your Analysis component, create a initialize method with the PipelineContext as a parameter:
+
+```
+@Initialize
+	public void initialize(PipelineContext context){
+		// You can use simple strings
+		final String relationsStr = configValues.get("someConfigParm").getValue();
+		
+		// Getting a custom type using generics - You must ensure you are using/know the correct type
+		Optional<Concept> someParm = ctx.getGenericConfigurationParameter("SentenceAnnotator", "someParm");
+		
+	}
+	
+```
+#Framework Concepts 
 
 ## Pipelines
 
 Pipelines play a central role in Tubular. The idea of a pipeline in Tubular is to allow reuse and cooperative behaviors in text processing logic similar to the pipe system in Unix systems. This allows setup, testing, and execution of text processing strategies without the need to configure an underlying system to run it. 
 
-Each component in the pipeline is called an AnnotationProcessor. The AnnotationProcessor takes in as input the text you want to analyze or annotations produced by other AnnotationProcessors for your application to use. When your algorithm creates new annotations, they get stored back into what is called the CommonAnalysisStructure. When a single iteration of the pipeline is completed, you can use Tubular's worklist to extract and write out the annotations of interest.
+Each component in the pipeline is called an AnnotationProcessor. The AnnotationProcessor takes in as input the text you want to analyze or annotations produced by other AnnotationProcessors for your application to use. When your algorithm creates new annotations, they get stored back into what is called the Common Analysis Structure from the UIMA spec. When a single iteration of the pipeline is completed, you can use Tubular's worklist to extract, filter, and write out the annotations of interest using worklists.
 
 ## Worklists
 

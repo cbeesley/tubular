@@ -13,7 +13,8 @@ public class SparkRunnerConfiguration implements ExecutionConfiguration,Serializ
 	
 	public static enum RESULTS_OUTPUT_TYPE {
 		CSV,
-		PARQUET
+		PARQUET,
+		SOLR_COHORT
 	}
 
 	private String sourceTextFilePath;
@@ -53,28 +54,7 @@ public class SparkRunnerConfiguration implements ExecutionConfiguration,Serializ
 	private boolean useBaseWorkItemText = false;
 	
 	private RESULTS_OUTPUT_TYPE fileOutputType;
-	/**
-	 * Set this to load property files that you need to load on the cluster
-	 * They need to be located in the classpath of the jar that is deployed 
-	 */
-	private List<String> clusterProps;
-	/**
-	 * Send JAR files to distribute to the cluster using the names
-	 */
-	private List<String> jarFileNames;
-	/**
-	 * Specifiy a list of jvm parameters you want to pass to the cluster
-	 * spark.executor.extraJavaOptions
-	 */
-	private List<String> clusterJVMParams;
 	
-	/**
-	 * Enum for setting up labels for each config param
-	 *
-	 */
-	public enum SparkRunnerConfig {
-		
-	}
 	
 	private Map<String,String> configParameter = new HashMap<String,String>();
 	

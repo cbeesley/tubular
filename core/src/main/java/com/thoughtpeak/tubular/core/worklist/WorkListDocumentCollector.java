@@ -14,7 +14,8 @@ import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
  * 
  * @author chrisbeesley
  *
- * @param <T>
+ * @param <T> - the type that will be the subject of analysis
+ * @param <U> - The type that will be the input class type for processing through the worklist
  */
 public interface WorkListDocumentCollector<T extends BaseWorkItem,U> extends Closeable{
 	/**
