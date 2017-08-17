@@ -2,6 +2,7 @@ package com.thoughtpeak.tubular.core.worklist;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.List;
 
 import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
 
@@ -56,6 +57,12 @@ public interface WorkListDocumentCollector<T extends BaseWorkItem,U> extends Clo
 	 */
 	public void close() throws IOException;
 	
-	
-
+	/**
+	 * Load reports with content. Mainly for batch process.
+	 * Auto generated method comment
+	 * 
+	 * @param itemList List of work items
+	 * @return List<T>
+	 */
+	public List<T> loadDocuments(List<T> itemList);
 }

@@ -111,6 +111,12 @@ public class SparkRunnerFunctionalTest extends BaseDocumentTest{
 			// TODO Auto-generated method stub
 			
 		}
+
+        @Override
+        public List<BaseWorkItem> loadDocuments(List<BaseWorkItem> itemList) {
+            // TODO Auto-generated method stub
+            return null;
+        }
 		
 	}
 
