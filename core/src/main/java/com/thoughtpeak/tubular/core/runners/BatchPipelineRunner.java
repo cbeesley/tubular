@@ -10,6 +10,7 @@ import java.util.concurrent.Executors;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Optional;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -35,8 +36,11 @@ public class BatchPipelineRunner implements CoreRunner {
      */
     private boolean waitToComplete = true;
     
-    //TODO - add this into property
-    private int batch_size = 999;
+    /**
+     * Max batch size in report list to retrive report content, etc for processing: default to 999
+     */
+    private Integer batch_size = Integer
+            .valueOf(Optional.fromNullable(System.getProperty("batch.runner.batch_size")).or("999"));
     
     /**
      * @see com.thoughtpeak.tubular.core.runners.CoreRunner#execute(com.thoughtpeak.tubular.core.processengine.Pipeline,
