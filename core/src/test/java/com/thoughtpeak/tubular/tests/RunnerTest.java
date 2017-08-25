@@ -147,6 +147,12 @@ public class RunnerTest extends BaseDocumentTest {
             // TODO Auto-generated method stub
             return null;
         }
+
+		@Override
+		public List<BaseWorkItem> getSourceIds() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 		
 	}
 

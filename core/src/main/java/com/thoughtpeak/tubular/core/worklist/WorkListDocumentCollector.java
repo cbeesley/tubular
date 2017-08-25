@@ -58,6 +58,17 @@ public interface WorkListDocumentCollector<T extends BaseWorkItem,U> extends Clo
 	public void close() throws IOException;
 	
 	/**
+	 * This method allows access to the sourceIds(U) so they can parallelize the entire collection directly instead of calling the getNext()
+	 * in the worklist. This is useful in cases where you want something like Spark to handle the retrieval of the source
+	 * text for example, from a http based service during the paralellization process as opposed to materializing 
+	 * the entire collection at once if you have a large amount of data to process.
+	 * 
+	 * @return A list of U source id types to create the initial set. If this is null or empty, then the runner will attempt to call 
+	 * the getNext() in the worklist.
+	 */
+	public List<U> getSourceIds();
+	
+	/**
 	 * Load reports with content. Mainly for batch process.
 	 * Auto generated method comment
 	 * 
@@ -65,4 +76,6 @@ public interface WorkListDocumentCollector<T extends BaseWorkItem,U> extends Clo
 	 * @return List<T>
 	 */
 	public List<T> loadDocuments(List<T> itemList);
+	
+	
 }

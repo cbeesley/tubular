@@ -43,16 +43,7 @@ public interface SparkWorkListCollector<T extends BaseWorkItem,U, V> extends Wor
 	 * @return The generic result type that spark can process into additional RDD
 	 */
 	public List<V> initialPipelineResultsFilter(CommonAnalysisStructure cas, T workItem);
-	/**
-	 * Spark can parallelize the entire collection directly instead of calling the getNext()
-	 * in the worklist. This is useful in cases where you want Spark to handle the retrieval of the source
-	 * text for example, from a http based service during the paralellization process as opposed to materializing 
-	 * the entire collection at once if you have a large amount of data to process.
-	 * 
-	 * @return A list of T types to create the initial RDD. If this is null or empty, then the runner will attempt to call 
-	 * the getNext() in the worklist.
-	 */
-	public List<U> getSourceIds();
+	
 	
 	/**
 	 * Define your data source configuration and loading of your source data from an
