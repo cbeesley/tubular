@@ -162,10 +162,12 @@ public class RunnerTest extends BaseDocumentTest {
             // TODO Auto-generated method stub
         }
 
+        /**
+         * We are just using the item as both the source id and the pipeline item
+         */
 		@Override
 		public BaseWorkItem loadDocument(BaseWorkItem item) {
-			// TODO Auto-generated method stub
-			return null;
+			return item;
 		}
 	}
 
