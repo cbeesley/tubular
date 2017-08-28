@@ -153,7 +153,14 @@ public class RunnerTest extends BaseDocumentTest {
 			// TODO Auto-generated method stub
 			return null;
 		}
-		
+
+        /**
+         * @see com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector#writeResults(java.util.List)
+         */
+        @Override
+        public <E> void writeResults(List<E> results) {
+            // TODO Auto-generated method stub
+        }
 	}
 
 }

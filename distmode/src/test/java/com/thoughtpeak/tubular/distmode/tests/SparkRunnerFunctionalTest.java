@@ -124,6 +124,13 @@ public class SparkRunnerFunctionalTest extends BaseDocumentTest{
 			return null;
 		}
 		
+        /**
+         * @see com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector#writeResults(java.util.List)
+         */
+        @Override
+        public <E> void writeResults(List<E> results) {
+            // TODO Auto-generated method stub
+        }
 	}
 
 }

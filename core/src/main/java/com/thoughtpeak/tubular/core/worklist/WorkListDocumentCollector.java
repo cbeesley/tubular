@@ -76,6 +76,14 @@ public interface WorkListDocumentCollector<T extends BaseWorkItem,U> extends Clo
 	 * @return List<T>
 	 */
 	public List<T> loadDocuments(List<T> itemList);
-	
-	
+    
+    /**
+     * Write the results after all has been processed. We discovered that this method is needed for
+     * runners that need write the results all together after other processes have been done (like
+     * ngram. It cannot write result one by one when one item is processed).
+     * 
+     * @param <E> type E in List
+     * @param results List
+     */
+    public <E> void writeResults(List<E> results);
 }
