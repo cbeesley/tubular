@@ -59,15 +59,16 @@ public class BatchPipelineRunner implements CoreRunner {
         
         while (!worklist.isComplete()) {
             
-            List<T> itemList = new ArrayList<T>();
+            List<U> itemList = new ArrayList<U>();
             
             for (int i = 0; i < this.batch_size && !worklist.isComplete(); i++) {
                 itemList.add(worklist.getNext());
             }
             
-            worklist.loadDocuments(itemList);
+            List<T> workItems = worklist.loadDocuments(itemList);
             
-            for (final T eachItem : itemList) {
+            
+            for (final T eachItem : workItems) {
                 
                 final ListenableFuture<T> future = jobServicePool.submit(new Callable<T>() {
                     

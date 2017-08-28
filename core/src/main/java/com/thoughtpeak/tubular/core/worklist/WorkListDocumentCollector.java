@@ -23,7 +23,7 @@ public interface WorkListDocumentCollector<T extends BaseWorkItem,U> extends Clo
 	 * Gets the next document in the worklist
 	 * @return The defined type which is 
 	 */
-	public T getNext();
+	public U getNext();
 	/**
 	 * Lets the runner know that the document collection
 	 * has reach an end state
@@ -72,10 +72,18 @@ public interface WorkListDocumentCollector<T extends BaseWorkItem,U> extends Clo
 	 * Load reports with content. Mainly for batch process.
 	 * Auto generated method comment
 	 * 
-	 * @param itemList List of work items
+	 * @param itemList List of work items of type U that is used as a source id
 	 * @return List<T>
 	 */
-	public List<T> loadDocuments(List<T> itemList);
+	public List<T> loadDocuments(List<U> itemList);
+	/**
+	 * Loads a single document
+	 * 
+	 * @param item - A source object of some kind of type U
+	 * 
+	 * @return - A new object that extends BaseWorkItem that will be used in the pipelines
+	 */
+	public T loadDocument(U item);
     
     /**
      * Write the results after all has been processed. We discovered that this method is needed for

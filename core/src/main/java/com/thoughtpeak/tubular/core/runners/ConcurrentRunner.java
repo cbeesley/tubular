@@ -50,8 +50,8 @@ public class ConcurrentRunner implements CoreRunner {
 
 		while(!worklist.isComplete()){
 
-			final T eachItem = worklist.getNext();
-			
+			final U eachItem = worklist.getNext();
+			final T workItem = worklist.loadDocument(eachItem);
 
 			final ListenableFuture<T> future = jobServicePool.submit(new Callable<T>() {
 
@@ -61,9 +61,10 @@ public class ConcurrentRunner implements CoreRunner {
 					CommonAnalysisStructure bin = null;
 					try {
 						pipeline = pipelinePool.borrowObject();
-						bin = pipeline.executePipeline(eachItem.getDocumentText());
 						
-						worklist.workItemCompleted(bin, eachItem);
+						bin = pipeline.executePipeline(workItem.getDocumentText());
+						
+						worklist.workItemCompleted(bin, workItem);
 						// Send to results collection
 
 
@@ -83,7 +84,7 @@ public class ConcurrentRunner implements CoreRunner {
 						}
 					}
 
-					return eachItem;//Return annotations
+					return workItem;//Return annotations
 				}
 			});
 

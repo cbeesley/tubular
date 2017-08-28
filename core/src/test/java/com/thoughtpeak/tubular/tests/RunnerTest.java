@@ -161,6 +161,12 @@ public class RunnerTest extends BaseDocumentTest {
         public <E> void writeResults(List<E> results) {
             // TODO Auto-generated method stub
         }
+
+		@Override
+		public BaseWorkItem loadDocument(BaseWorkItem item) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 
 }
