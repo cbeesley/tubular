@@ -30,7 +30,7 @@ public class TestWordTokenAnnotator implements CoreAnnotationProcessor{
 The CommonAnalysisStructure is an indexed view of what previous annotators in your pipeline have added until it reaches the next in line.
 
 ### Configuration Parameters
-If you need to pass configuration parameters to your Analysis Component, the recommended way is to use a PipelineContext so that parameters may be distibuted correctly on anything from a single test runner to a Spark distrubuted job:
+If you need to pass configuration parameters to your Analysis Component, the recommended way is to use a PipelineContext so that parameters may be distibuted correctly on anything from a single test runner to a Spark distributed job:
 
 ```
 PipelineContext ctx = new PipelineContext();
@@ -54,10 +54,14 @@ Then in your Analysis component, create a initialize method with the PipelineCon
 ```
 @Initialize
 	public void initialize(PipelineContext context){
+	   //To use the string based parameters, get the Map of values
+		Map<String,PipelineConfigurationKeyValue> configValues = pipelineContext.getConfigurationValue(ANNOTATOR_NAME);
+		
 		// You can use simple strings
 		final String relationsStr = configValues.get("someConfigParm").getValue();
 		
 		// Getting a custom type using generics - You must ensure you are using/know the correct type
+		// otherwise Optional will throw a cast error - This is using Guava's Optional
 		Optional<Concept> someParm = ctx.getGenericConfigurationParameter("SentenceAnnotator", "someParm");
 		
 	}
