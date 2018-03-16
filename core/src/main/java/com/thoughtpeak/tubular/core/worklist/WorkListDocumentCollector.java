@@ -69,8 +69,9 @@ public interface WorkListDocumentCollector<T extends BaseWorkItem,U> extends Clo
 	public List<U> getSourceIds();
 	
 	/**
-	 * Load reports with content. Mainly for batch process.
-	 * Auto generated method comment
+	 * Load reports with content with a source type. This method is mainly designed to
+	 * load the report/document from an external source. If there is no external resource then
+	 * this method can return the source type.
 	 * 
 	 * @param itemList List of work items of type U that is used as a source id
 	 * @return List<T>
@@ -87,8 +88,8 @@ public interface WorkListDocumentCollector<T extends BaseWorkItem,U> extends Clo
     
     /**
      * Write the results after all has been processed. We discovered that this method is needed for
-     * runners that need write the results all together after other processes have been done (like
-     * ngram. It cannot write result one by one when one item is processed).
+     * runners that need write the results all together after other processes have been done
+     * It cannot write result one by one when one item is processed).
      * 
      * @param <E> type E in List
      * @param results List
