@@ -42,13 +42,17 @@ public class BatchPipelineRunner implements CoreRunner {
     private Integer batch_size = Integer
             .valueOf(Optional.fromNullable(System.getProperty("batch.runner.batch_size")).or("999"));
     
+    public BatchPipelineRunner(int num_workers) {
+    		this.NUM_WORKERS = num_workers;
+    }
+    
     /**
      * @see com.thoughtpeak.tubular.core.runners.CoreRunner#execute(com.thoughtpeak.tubular.core.processengine.Pipeline,
      *      com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector)
      */
     @Override
     public <T extends BaseWorkItem, U> void execute(Pipeline pipeline, final WorkListDocumentCollector<T, U> worklist) {
-        
+        log.info("## Running execute ##");
         ListeningExecutorService jobServicePool = MoreExecutors
                 .listeningDecorator(Executors.newFixedThreadPool(NUM_WORKERS));
         
@@ -64,7 +68,7 @@ public class BatchPipelineRunner implements CoreRunner {
             for (int i = 0; i < this.batch_size && !worklist.isComplete(); i++) {
                 itemList.add(worklist.getNext());
             }
-            
+            // TODO - batch these?
             List<T> workItems = worklist.loadDocuments(itemList);
             
             
@@ -149,5 +153,12 @@ public class BatchPipelineRunner implements CoreRunner {
             e.printStackTrace();
         }
         
+    }
+    /**
+     * This halts the runner
+     */
+    public void stopRunner() {
+    		waitToComplete = false;
+    		log.info("stopping runner!");
     }
 }
