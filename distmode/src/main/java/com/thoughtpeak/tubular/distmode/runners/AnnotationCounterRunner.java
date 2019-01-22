@@ -18,12 +18,13 @@ import scala.Tuple2;
 import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
 import com.thoughtpeak.tubular.core.processengine.Pipeline;
 import com.thoughtpeak.tubular.core.worklist.BaseWorkItem;
+import com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector;
 import com.thoughtpeak.tubular.distmode.BaseSparkRunner;
 import com.thoughtpeak.tubular.distmode.SparkWorkListCollector;
 import com.thoughtpeak.tubular.distmode.confs.SparkRunnerConfiguration;
 import com.thoughtpeak.tubular.distmode.types.MapperResultType;
 
-public class AnnotationCounterRunner extends BaseSparkRunner {
+public class AnnotationCounterRunner extends BaseSparkRunner<MapperResultType> {
 
 	private static final long serialVersionUID = -4467055995049235517L;
 
@@ -34,8 +35,8 @@ public class AnnotationCounterRunner extends BaseSparkRunner {
 
 	
 	@Override
-	protected <T extends BaseWorkItem> void beginJob(final Pipeline pipeline,
-			final SparkWorkListCollector<T> worklist) {
+	protected <T extends BaseWorkItem,U> void beginJob(final Pipeline pipeline,
+			final SparkWorkListCollector<T,U,MapperResultType> worklist) {
 		SparkConf sparkConf = new SparkConf().setMaster(runnerConfig.getRuntimeMode()).setAppName(runnerConfig.getAppName());
 		//sparkConf.set(key, value)
 		JavaSparkContext sparkContext = new JavaSparkContext(sparkConf);
@@ -43,23 +44,7 @@ public class AnnotationCounterRunner extends BaseSparkRunner {
 		
 		//conf.setAppName(pipeline.getPipelineName());
 		//final Broadcast<Pipeline> broadcastpipeline = sparkContext.broadcast(pipeline.createNewCopy());
-		JavaRDD<T> input = null;
-		
-		// if the worklist has items, then this runner will use the source text
-		// in each base work item or use the identifier to get it from an external source
-		// parallelize loads the entire collection in memory so be careful with large datasets
-		// in the worklist class
-		if(runnerConfig.isUseBaseWorkItemText()){
-			if(worklist.getCollection() == null || worklist.getCollection().isEmpty()){
-				List<T> temp = new ArrayList<T>();
-				while(!worklist.isComplete()){
-					temp.add(worklist.getNext());
-				}
-				input = sparkContext.parallelize(temp);
-			}else {// just use this collection from the worklist
-				input = sparkContext.parallelize(worklist.getCollection());
-			}
-		}
+		JavaRDD<U> input = sparkContext.parallelize(worklist.getSourceIds());
 		
 		JavaRDD<MapperResultType> annotations = createPartitionPipelineBasedRDD(pipeline,input,worklist);
 		// Transform that maps the annotations into key/value pairs

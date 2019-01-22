@@ -7,6 +7,8 @@
   <name>Tubular Aggregation</name>
   <modules>
 		<module>core</module>
+		<module>distmode</module>
+		
   </modules>
 </project> 
 

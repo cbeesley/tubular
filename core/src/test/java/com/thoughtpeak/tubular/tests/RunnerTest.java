@@ -1,5 +1,7 @@
 package com.thoughtpeak.tubular.tests;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -7,10 +9,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.common.collect.Lists;
 import com.thoughtpeak.tubular.core.collection.CSVCreatorChannel;
 import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
 import com.thoughtpeak.tubular.core.processengine.Pipeline;
+import com.thoughtpeak.tubular.core.processengine.PipelineContext;
 import com.thoughtpeak.tubular.core.runners.ConcurrentRunner;
+import com.thoughtpeak.tubular.core.runners.SimpleRunner;
 import com.thoughtpeak.tubular.core.worklist.BaseWorkItem;
 import com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector;
 import com.thoughtpeak.tubular.tests.pipelinetests.TestConceptDetector;
@@ -25,20 +30,59 @@ public class RunnerTest extends BaseDocumentTest {
 	
 	private Pipeline pipeline;
 	
+	private TestSentenceDetector sample = new TestSentenceDetector();
+	
 	@Before
 	public void setUp(){
 		System.out.println("##Setting up pipeline test");
+		// Create a new context to test with
+		PipelineContext ctx = new PipelineContext();
+		ctx.addAnnotationConfigurationParameter(TestSentenceDetector.ANNOTATOR_NAME, "modelFile", "/opt/some/file.gz");
+		List<String> parmList = Lists.newArrayList("parm1","parm2,", "etc");
+		ctx.addAnnotationConfigurationParameter(TestSentenceDetector.ANNOTATOR_NAME, "configList", parmList);
+		
 		pipeline = new Pipeline.Assemble("Test Pipeline")
-		.addAnalyzer(new TestSentenceDetector())
+		.addAnalyzer(sample)
 		.addAnalyzer(new TestWordTokenAnnotator())
 		.addAnalyzer(new TestConceptDetector())
+		.setPipelineContext(ctx)
 		.create();
 		
 		
 	}
 	
 	@Test
-	public void runnerTest(){
+	public void annotatorConfigurationTest() {
+		
+		// check the annotator config is working
+		assertNotNull(sample.getPipelineContext());
+	}
+	
+	@Test
+	public void simpleRunnerTest(){
+		
+		
+		
+		try {
+			
+			TestWorklist testWorklist = new TestWorklist(this.loadMultiDocument("multiDoc.txt"));
+			SimpleRunner runner = new SimpleRunner();
+			runner.execute(pipeline, testWorklist);
+			
+			CSVCreatorChannel csvChannel = new CSVCreatorChannel(null);
+			
+			System.out.println("## Completed pipeline test");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	@Test
+	public void concurrentRunnerTest(){
+		
+		
+		
 		try {
 			
 			TestWorklist testWorklist = new TestWorklist(this.loadMultiDocument("multiDoc.txt"));
@@ -54,7 +98,7 @@ public class RunnerTest extends BaseDocumentTest {
 		}
 	}
 	
-	private class TestWorklist implements WorkListDocumentCollector<BaseWorkItem> {
+	private class TestWorklist implements WorkListDocumentCollector<BaseWorkItem,BaseWorkItem> {
 		
 		private List<BaseWorkItem> worklist;
 		
@@ -97,7 +141,34 @@ public class RunnerTest extends BaseDocumentTest {
 			// TODO Auto-generated method stub
 			
 		}
-		
+
+        @Override
+        public List<BaseWorkItem> loadDocuments(List<BaseWorkItem> itemList) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+		@Override
+		public List<BaseWorkItem> getSourceIds() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+        /**
+         * @see com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector#writeResults(java.util.List)
+         */
+        @Override
+        public <E> void writeResults(List<E> results) {
+            // TODO Auto-generated method stub
+        }
+
+        /**
+         * We are just using the item as both the source id and the pipeline item
+         */
+		@Override
+		public BaseWorkItem loadDocument(BaseWorkItem item) {
+			return item;
+		}
 	}
 
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.thoughtpeak.tubular.core.collection.CSVCreatorChannel;
@@ -21,6 +22,13 @@ import com.thoughtpeak.tubular.tests.pipelinetests.TestConceptDetector;
 import com.thoughtpeak.tubular.tests.pipelinetests.TestSentenceDetector;
 import com.thoughtpeak.tubular.tests.pipelinetests.TestWordTokenAnnotator;
 
+/**
+ * Still working on getting this setup and working
+ * 
+ * @author chrisbeesley
+ *
+ */
+@Ignore
 public class SparkRunnerFunctionalTest extends BaseDocumentTest{
 	
 	private Pipeline pipeline;
@@ -60,7 +68,7 @@ public class SparkRunnerFunctionalTest extends BaseDocumentTest{
 		}
 	}
 	
-	private class TestWorklist implements WorkListDocumentCollector<BaseWorkItem> {
+	private class TestWorklist implements WorkListDocumentCollector<BaseWorkItem,BaseWorkItem> {
 		
 		private List<BaseWorkItem> worklist;
 		
@@ -103,7 +111,32 @@ public class SparkRunnerFunctionalTest extends BaseDocumentTest{
 			// TODO Auto-generated method stub
 			
 		}
+
+        @Override
+        public List<BaseWorkItem> loadDocuments(List<BaseWorkItem> itemList) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+		@Override
+		public List<BaseWorkItem> getSourceIds() {
+			// TODO Auto-generated method stub
+			return null;
+		}
 		
+        /**
+         * @see com.thoughtpeak.tubular.core.worklist.WorkListDocumentCollector#writeResults(java.util.List)
+         */
+        @Override
+        public <E> void writeResults(List<E> results) {
+            // TODO Auto-generated method stub
+        }
+
+		@Override
+		public BaseWorkItem loadDocument(BaseWorkItem item) {
+			// TODO Auto-generated method stub
+			return null;
+		}
 	}
 
 }

@@ -1,6 +1,7 @@
 package com.thoughtpeak.tubular.core.runners;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -39,7 +40,7 @@ public class ConcurrentRunner implements CoreRunner {
 	 * Creates a pool of pipelines then takes the worklist and processes an item in its own thread pipeline
 	 */
 	@Override
-	public <T extends BaseWorkItem> void execute(Pipeline pipeline, final WorkListDocumentCollector<T> worklist) {
+	public <T extends BaseWorkItem,U> void execute(Pipeline pipeline, final WorkListDocumentCollector<T,U> worklist) {
 
 		ListeningExecutorService jobServicePool = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(NUM_WORKERS));
 
@@ -49,8 +50,8 @@ public class ConcurrentRunner implements CoreRunner {
 
 		while(!worklist.isComplete()){
 
-			final T eachItem = worklist.getNext();
-			
+			final U eachItem = worklist.getNext();
+			final T workItem = worklist.loadDocument(eachItem);
 
 			final ListenableFuture<T> future = jobServicePool.submit(new Callable<T>() {
 
@@ -60,9 +61,10 @@ public class ConcurrentRunner implements CoreRunner {
 					CommonAnalysisStructure bin = null;
 					try {
 						pipeline = pipelinePool.borrowObject();
-						bin = pipeline.executePipeline(eachItem.getDocumentText());
 						
-						worklist.workItemCompleted(bin, eachItem);
+						bin = pipeline.executePipeline(workItem.getDocumentText());
+						
+						worklist.workItemCompleted(bin, workItem);
 						// Send to results collection
 
 
@@ -82,7 +84,7 @@ public class ConcurrentRunner implements CoreRunner {
 						}
 					}
 
-					return eachItem;//Return annotations
+					return workItem;//Return annotations
 				}
 			});
 
@@ -132,5 +134,6 @@ public class ConcurrentRunner implements CoreRunner {
 		
 
 	}
+
 
 }

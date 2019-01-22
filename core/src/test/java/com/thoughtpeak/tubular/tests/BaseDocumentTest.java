@@ -40,7 +40,7 @@ public class BaseDocumentTest {
 	}
 	
 	protected List<BaseWorkItem> loadMultiDocument(String fileName) throws IOException{
-		//File file = new File("/Users/chrisbeesley/Documents/datasets/DischargeNotes.txt");
+		
 		final List<BaseWorkItem> multiDocument = new ArrayList<BaseWorkItem>();
 		URL url = Resources.getResource(fileName);
 		
@@ -64,6 +64,12 @@ public class BaseDocumentTest {
 				    				public String getDocumentText(){
 				    					return buffer.toString();
 				    				}
+
+									@Override
+									public void setInitialView(String text) {
+										// TODO Auto-generated method stub
+										
+									}
 				    				
 				    			});
 				    		}

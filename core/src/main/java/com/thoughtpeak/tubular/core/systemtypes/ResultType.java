@@ -20,4 +20,10 @@ public class ResultType extends BaseWorkItem {
 		return result;
 	}
 
+	@Override
+	public void setInitialView(String text) {
+		throw new IllegalArgumentException("This type does not allow to override the text");
+		
+	}
+
 }

@@ -2,6 +2,7 @@ package com.thoughtpeak.tubular.core.worklist;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.List;
 
 import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
 
@@ -14,14 +15,15 @@ import com.thoughtpeak.tubular.core.container.CommonAnalysisStructure;
  * 
  * @author chrisbeesley
  *
- * @param <T>
+ * @param <T> - the type that will be the subject of analysis
+ * @param <U> - The type that will be the input class type for processing through the worklist
  */
-public interface WorkListDocumentCollector<T extends BaseWorkItem> extends Closeable{
+public interface WorkListDocumentCollector<T extends BaseWorkItem,U> extends Closeable{
 	/**
 	 * Gets the next document in the worklist
 	 * @return The defined type which is 
 	 */
-	public T getNext();
+	public U getNext();
 	/**
 	 * Lets the runner know that the document collection
 	 * has reach an end state
@@ -55,6 +57,42 @@ public interface WorkListDocumentCollector<T extends BaseWorkItem> extends Close
 	 */
 	public void close() throws IOException;
 	
+	/**
+	 * This method allows access to the sourceIds(U) so they can parallelize the entire collection directly instead of calling the getNext()
+	 * in the worklist. This is useful in cases where you want something like Spark to handle the retrieval of the source
+	 * text for example, from a http based service during the paralellization process as opposed to materializing 
+	 * the entire collection at once if you have a large amount of data to process.
+	 * 
+	 * @return A list of U source id types to create the initial set. If this is null or empty, then the runner will attempt to call 
+	 * the getNext() in the worklist.
+	 */
+	public List<U> getSourceIds();
 	
-
+	/**
+	 * Load reports with content with a source type. This method is mainly designed to
+	 * load the report/document from an external source. If there is no external resource then
+	 * this method can return the source type.
+	 * 
+	 * @param itemList List of work items of type U that is used as a source id
+	 * @return List<T>
+	 */
+	public List<T> loadDocuments(List<U> itemList);
+	/**
+	 * Loads a single document
+	 * 
+	 * @param item - A source object of some kind of type U
+	 * 
+	 * @return - A new object that extends BaseWorkItem that will be used in the pipelines
+	 */
+	public T loadDocument(U item);
+    
+    /**
+     * Write the results after all has been processed. We discovered that this method is needed for
+     * runners that need write the results all together after other processes have been done
+     * It cannot write result one by one when one item is processed).
+     * 
+     * @param <E> type E in List
+     * @param results List
+     */
+    public <E> void writeResults(List<E> results);
 }

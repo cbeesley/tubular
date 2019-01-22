@@ -20,16 +20,17 @@ public class SimpleRunner implements CoreRunner{
 	
 
 	@Override
-	public <T extends BaseWorkItem> void execute(Pipeline pipeline,
-			WorkListDocumentCollector<T> worklist) {
+	public <T extends BaseWorkItem,U> void execute(Pipeline pipeline,
+			WorkListDocumentCollector<T,U> worklist) {
 		
 		Pipeline used = pipeline.createNewCopy();
 		
 		while(!worklist.isComplete()){
-			T eachItem = worklist.getNext();
-			CommonAnalysisStructure bin = used.executePipeline(eachItem.getDocumentText());
+			U eachItem = worklist.getNext();
+			T workItem = worklist.loadDocument(eachItem);
+			CommonAnalysisStructure bin = used.executePipeline(workItem.getDocumentText());
 			
-			worklist.workItemCompleted(bin, eachItem);
+			worklist.workItemCompleted(bin, workItem);
 			
 		}
 		try {
