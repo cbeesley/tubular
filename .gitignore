@@ -12,7 +12,8 @@ tmp/**/*
 .classpath
 .settings/
 .loadpath
-
+/.idea
+*.iml
 
 
 # OS Files
